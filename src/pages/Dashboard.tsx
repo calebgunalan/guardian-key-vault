@@ -1,14 +1,59 @@
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Users, Shield, Settings, LogOut } from "lucide-react";
+import { Users, Shield, Settings, LogOut, Activity, Eye, BarChart3 } from "lucide-react";
 
 export default function Dashboard() {
   const { user, userRole, signOut, loading } = useAuth();
   const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalPermissions: 0,
+    recentActivity: 0
+  });
+
+  useEffect(() => {
+    if (user && userRole === 'admin') {
+      fetchDashboardStats();
+      logDashboardAccess();
+    }
+  }, [user, userRole]);
+
+  const fetchDashboardStats = async () => {
+    try {
+      const [usersResult, permissionsResult, activityResult] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('permissions').select('id', { count: 'exact', head: true }),
+        supabase.from('audit_logs').select('id', { count: 'exact', head: true })
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      ]);
+
+      setStats({
+        totalUsers: usersResult.count || 0,
+        totalPermissions: permissionsResult.count || 0,
+        recentActivity: activityResult.count || 0
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+    }
+  };
+
+  const logDashboardAccess = async () => {
+    try {
+      await supabase.rpc('log_audit_event', {
+        _action: 'VIEW',
+        _resource: 'dashboard',
+        _details: { timestamp: new Date().toISOString() } as any
+      });
+    } catch (error) {
+      console.error('Error logging dashboard access:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -129,15 +174,35 @@ export default function Dashboard() {
                   Manage Users
                 </Button>
                 {userRole === 'admin' && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => navigate("/admin/roles")}
-                    className="w-full justify-start"
-                  >
-                    <Shield className="h-4 w-4 mr-2" />
-                    Manage Roles
-                  </Button>
+                  <>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate("/admin/roles")}
+                      className="w-full justify-start"
+                    >
+                      <Shield className="h-4 w-4 mr-2" />
+                      Manage Roles
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate("/admin/permissions")}
+                      className="w-full justify-start"
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Manage Permissions
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate("/admin/audit-logs")}
+                      className="w-full justify-start"
+                    >
+                      <Activity className="h-4 w-4 mr-2" />
+                      Audit Logs
+                    </Button>
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -146,22 +211,39 @@ export default function Dashboard() {
           {/* Quick Stats */}
           <Card>
             <CardHeader>
-              <CardTitle>Quick Stats</CardTitle>
-              <CardDescription>System overview</CardDescription>
+              <CardTitle className="flex items-center space-x-2">
+                <BarChart3 className="h-5 w-5" />
+                <span>System Analytics</span>
+              </CardTitle>
+              <CardDescription>Real-time system overview</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm">Account Status</span>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Total Users</span>
+                  <Badge variant="outline">{stats.totalUsers}</Badge>
+                </div>
+                {userRole === 'admin' && (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Permissions</span>
+                      <Badge variant="outline">{stats.totalPermissions}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Activity (24h)</span>
+                      <Badge variant="outline">{stats.recentActivity}</Badge>
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Your Role</span>
+                  <Badge variant={getRoleColor(userRole || 'user')}>
+                    {userRole || 'user'}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Status</span>
                   <Badge variant="default">Active</Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Access Level</span>
-                  <span className="text-sm font-medium">{userRole}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Last Login</span>
-                  <span className="text-sm text-muted-foreground">Now</span>
                 </div>
               </div>
             </CardContent>

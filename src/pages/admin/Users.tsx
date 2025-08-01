@@ -94,6 +94,14 @@ export default function Users() {
 
       if (error) throw error;
 
+      // Log audit event
+      await supabase.rpc('log_audit_event', {
+        _action: 'UPDATE',
+        _resource: 'user_roles',
+        _resource_id: userId,
+        _details: { new_role: newRole, changed_by: user?.id } as any
+      });
+
       toast({
         title: "Success",
         description: "User role updated successfully"
