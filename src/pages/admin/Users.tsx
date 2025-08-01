@@ -33,26 +33,35 @@ export default function Users() {
 
   const fetchUsers = async () => {
     try {
-        const { data, error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select(`
           user_id,
           email,
           full_name,
-          created_at,
-          user_roles(role)
+          created_at
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const formattedUsers = data?.map((profile: any) => ({
-        user_id: profile.user_id,
-        email: profile.email,
-        full_name: profile.full_name || 'N/A',
-        role: profile.user_roles?.[0]?.role || 'user',
-        created_at: profile.created_at
-      })) || [];
+      // Fetch roles separately
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      const formattedUsers = data?.map((profile: any) => {
+        const userRole = rolesData?.find(r => r.user_id === profile.user_id);
+        return {
+          user_id: profile.user_id,
+          email: profile.email,
+          full_name: profile.full_name || 'N/A',
+          role: userRole?.role || 'user',
+          created_at: profile.created_at
+        };
+      }) || [];
 
       setUsers(formattedUsers);
     } catch (error) {
