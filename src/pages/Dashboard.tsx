@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PermissionGate, AdminGate, ModeratorGate } from "@/components/PermissionGate";
 import { Users, Shield, Settings, LogOut, Activity, Eye, BarChart3 } from "lucide-react";
 
 export default function Dashboard() {
   const { user, userRole, signOut, loading } = useAuth();
+  const { canAccess, canManage } = usePermissions();
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -154,14 +157,43 @@ export default function Dashboard() {
           </Card>
 
           {/* Admin Functions */}
-          {(userRole === 'admin' || userRole === 'moderator') && (
+          <PermissionGate
+            action="VIEW" 
+            resource="users"
+            fallback={
+              <ModeratorGate>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Shield className="h-5 w-5" />
+                      <span>Administration</span>
+                    </CardTitle>
+                    <CardDescription>View system information</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate("/admin/users")}
+                      className="w-full justify-start"
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      View Users
+                    </Button>
+                  </CardContent>
+                </Card>
+              </ModeratorGate>
+            }
+          >
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Shield className="h-5 w-5" />
                   <span>Administration</span>
                 </CardTitle>
-                <CardDescription>Manage users and permissions</CardDescription>
+                <CardDescription>
+                  {canManage('users') ? 'Manage users and permissions' : 'View system information'}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button 
@@ -171,42 +203,47 @@ export default function Dashboard() {
                   className="w-full justify-start"
                 >
                   <Users className="h-4 w-4 mr-2" />
-                  Manage Users
+                  {canManage('users') ? 'Manage Users' : 'View Users'}
                 </Button>
-                {userRole === 'admin' && (
-                  <>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => navigate("/admin/roles")}
-                      className="w-full justify-start"
-                    >
-                      <Shield className="h-4 w-4 mr-2" />
-                      Manage Roles
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => navigate("/admin/permissions")}
-                      className="w-full justify-start"
-                    >
-                      <Settings className="h-4 w-4 mr-2" />
-                      Manage Permissions
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => navigate("/admin/audit-logs")}
-                      className="w-full justify-start"
-                    >
-                      <Activity className="h-4 w-4 mr-2" />
-                      Audit Logs
-                    </Button>
-                  </>
-                )}
+                
+                <AdminGate>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => navigate("/admin/roles")}
+                    className="w-full justify-start"
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    Manage Roles
+                  </Button>
+                </AdminGate>
+
+                <PermissionGate action="MANAGE" resource="permissions">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => navigate("/admin/permissions")}
+                    className="w-full justify-start"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Manage Permissions
+                  </Button>
+                </PermissionGate>
+
+                <PermissionGate action="VIEW" resource="audit_logs">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => navigate("/admin/audit-logs")}
+                    className="w-full justify-start"
+                  >
+                    <Activity className="h-4 w-4 mr-2" />
+                    Audit Logs
+                  </Button>
+                </PermissionGate>
               </CardContent>
             </Card>
-          )}
+          </PermissionGate>
 
           {/* Quick Stats */}
           <Card>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useRouteProtection } from "@/hooks/useRouteProtection";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,9 @@ interface User {
 
 export default function Users() {
   const { user, userRole, loading: authLoading } = useAuth();
+  const { isLoading: routeLoading } = useRouteProtection({ 
+    requiredPermission: { action: 'VIEW', resource: 'users' } 
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
@@ -118,7 +122,7 @@ export default function Users() {
     }
   };
 
-  if (authLoading || loading) {
+  if (authLoading || loading || routeLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

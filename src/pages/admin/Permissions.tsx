@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useRouteProtection } from "@/hooks/useRouteProtection";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +30,9 @@ interface RolePermission {
 
 const Permissions = () => {
   const { user, userRole, loading } = useAuth();
+  const { isLoading: routeLoading } = useRouteProtection({ 
+    requiredPermission: { action: 'MANAGE', resource: 'permissions' } 
+  });
   const navigate = useNavigate();
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>([]);
@@ -199,7 +203,7 @@ const Permissions = () => {
 
   const roles = ['admin', 'moderator', 'user'];
 
-  if (loading || isLoading) {
+  if (loading || isLoading || routeLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
