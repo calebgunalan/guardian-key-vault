@@ -136,6 +136,111 @@ export type Database = {
           },
         ]
       }
+      temporary_role_assignments: {
+        Row: {
+          assigned_by: string
+          created_at: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          reason: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          is_active?: boolean
+          reason?: string | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          reason?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_api_keys: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          permissions: Json | null
+          rate_limit: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name: string
+          permissions?: Json | null
+          rate_limit?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          permissions?: Json | null
+          rate_limit?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_mfa_settings: {
+        Row: {
+          backup_codes: string[] | null
+          created_at: string
+          id: string
+          is_enabled: boolean
+          secret: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          backup_codes?: string[] | null
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          secret?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          backup_codes?: string[] | null
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          secret?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           assigned_at: string
@@ -160,11 +265,57 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          is_active: boolean
+          last_activity: string
+          location_city: string | null
+          location_country: string | null
+          session_token: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          last_activity?: string
+          location_city?: string | null
+          location_country?: string | null
+          session_token: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          last_activity?: string
+          location_city?: string | null
+          location_country?: string | null
+          session_token?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      get_effective_user_role: {
+        Args: { _user_id: string }
+        Returns: string
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["system_role"]
@@ -174,6 +325,10 @@ export type Database = {
           _user_id: string
           _role: Database["public"]["Enums"]["system_role"]
         }
+        Returns: boolean
+      }
+      has_temporary_role: {
+        Args: { _user_id: string; _role: string }
         Returns: boolean
       }
       log_audit_event: {

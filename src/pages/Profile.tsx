@@ -7,7 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Loader2, User, Shield, Monitor, Key } from "lucide-react";
+import { MFASetup } from "@/components/security/MFASetup";
+import { SessionManagement } from "@/components/security/SessionManagement";
+import { APIKeyManagement } from "@/components/security/APIKeyManagement";
 
 export default function Profile() {
   const { user, updateProfile, loading: authLoading } = useAuth();
@@ -71,7 +75,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-6">
           <Button 
             variant="outline" 
@@ -82,75 +86,110 @@ export default function Profile() {
             Back to Dashboard
           </Button>
           
-          <h1 className="text-3xl font-bold">Profile Settings</h1>
-          <p className="text-muted-foreground">Manage your account information</p>
+          <h1 className="text-3xl font-bold">Profile & Security</h1>
+          <p className="text-muted-foreground">Manage your account information and security settings</p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
-            <CardDescription>Update your profile details</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src={profile.avatar_url} />
-                  <AvatarFallback className="text-lg">
-                    {profile.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium">Profile Picture</p>
-                  <p className="text-sm text-muted-foreground">
-                    Update your avatar URL below
-                  </p>
-                </div>
-              </div>
+        <Tabs defaultValue="profile" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Security
+            </TabsTrigger>
+            <TabsTrigger value="sessions" className="flex items-center gap-2">
+              <Monitor className="h-4 w-4" />
+              Sessions
+            </TabsTrigger>
+            <TabsTrigger value="api-keys" className="flex items-center gap-2">
+              <Key className="h-4 w-4" />
+              API Keys
+            </TabsTrigger>
+          </TabsList>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={user.email || ""}
-                  disabled
-                  className="bg-muted"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Email cannot be changed from this interface
-                </p>
-              </div>
+          <TabsContent value="profile">
+            <Card>
+              <CardHeader>
+                <CardTitle>Personal Information</CardTitle>
+                <CardDescription>Update your profile details</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="flex items-center space-x-4">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={profile.avatar_url} />
+                      <AvatarFallback className="text-lg">
+                        {profile.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium">Profile Picture</p>
+                      <p className="text-sm text-muted-foreground">
+                        Update your avatar URL below
+                      </p>
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="full_name">Full Name</Label>
-                <Input
-                  id="full_name"
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={profile.full_name}
-                  onChange={(e) => setProfile(prev => ({ ...prev, full_name: e.target.value }))}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={user.email || ""}
+                      disabled
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Email cannot be changed from this interface
+                    </p>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="avatar_url">Avatar URL</Label>
-                <Input
-                  id="avatar_url"
-                  type="url"
-                  placeholder="https://example.com/avatar.jpg"
-                  value={profile.avatar_url}
-                  onChange={(e) => setProfile(prev => ({ ...prev, avatar_url: e.target.value }))}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="full_name">Full Name</Label>
+                    <Input
+                      id="full_name"
+                      type="text"
+                      placeholder="Enter your full name"
+                      value={profile.full_name}
+                      onChange={(e) => setProfile(prev => ({ ...prev, full_name: e.target.value }))}
+                    />
+                  </div>
 
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Update Profile
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+                  <div className="space-y-2">
+                    <Label htmlFor="avatar_url">Avatar URL</Label>
+                    <Input
+                      id="avatar_url"
+                      type="url"
+                      placeholder="https://example.com/avatar.jpg"
+                      value={profile.avatar_url}
+                      onChange={(e) => setProfile(prev => ({ ...prev, avatar_url: e.target.value }))}
+                    />
+                  </div>
+
+                  <Button type="submit" disabled={loading} className="w-full">
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Update Profile
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="security">
+            <MFASetup />
+          </TabsContent>
+
+          <TabsContent value="sessions">
+            <SessionManagement />
+          </TabsContent>
+
+          <TabsContent value="api-keys">
+            <APIKeyManagement />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
