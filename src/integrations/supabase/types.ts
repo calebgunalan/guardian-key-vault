@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_rate_limit_logs: {
+        Row: {
+          api_key_id: string | null
+          created_at: string
+          endpoint: string
+          id: string
+          request_count: number
+          user_id: string
+          window_end: string
+          window_start: string
+        }
+        Insert: {
+          api_key_id?: string | null
+          created_at?: string
+          endpoint: string
+          id?: string
+          request_count?: number
+          user_id: string
+          window_end: string
+          window_start: string
+        }
+        Update: {
+          api_key_id?: string | null
+          created_at?: string
+          endpoint?: string
+          id?: string
+          request_count?: number
+          user_id?: string
+          window_end?: string
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_rate_limit_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "user_api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -169,6 +210,56 @@ export type Database = {
         }
         Relationships: []
       }
+      time_based_permissions: {
+        Row: {
+          created_at: string
+          created_by: string
+          days_of_week: number[]
+          end_time: string
+          id: string
+          is_active: boolean
+          permission_id: string | null
+          start_time: string
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          days_of_week?: number[]
+          end_time: string
+          id?: string
+          is_active?: boolean
+          permission_id?: string | null
+          start_time: string
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          days_of_week?: number[]
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          permission_id?: string | null
+          start_time?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_based_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_api_keys: {
         Row: {
           created_at: string
@@ -265,6 +356,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_session_settings: {
+        Row: {
+          created_at: string
+          id: string
+          idle_timeout: unknown
+          max_concurrent_sessions: number
+          max_session_duration: unknown
+          require_reauth_for_sensitive: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idle_timeout?: unknown
+          max_concurrent_sessions?: number
+          max_session_duration?: unknown
+          require_reauth_for_sensitive?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idle_timeout?: unknown
+          max_concurrent_sessions?: number
+          max_session_duration?: unknown
+          require_reauth_for_sensitive?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_sessions: {
         Row: {
           created_at: string
@@ -320,6 +444,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["system_role"]
       }
+      has_enhanced_permission: {
+        Args: { _user_id: string; _action: string; _resource: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _user_id: string
@@ -329,6 +457,24 @@ export type Database = {
       }
       has_temporary_role: {
         Args: { _user_id: string; _role: string }
+        Returns: boolean
+      }
+      has_time_based_permission: {
+        Args: {
+          _user_id: string
+          _permission_action: string
+          _permission_resource: string
+          _check_time?: string
+        }
+        Returns: boolean
+      }
+      log_api_rate_limit: {
+        Args: {
+          _api_key_id: string
+          _user_id: string
+          _endpoint: string
+          _window_minutes?: number
+        }
         Returns: boolean
       }
       log_audit_event: {

@@ -12,6 +12,9 @@ import { ArrowLeft, Loader2, User, Shield, Monitor, Key } from "lucide-react";
 import { MFASetup } from "@/components/security/MFASetup";
 import { SessionManagement } from "@/components/security/SessionManagement";
 import { APIKeyManagement } from "@/components/security/APIKeyManagement";
+import { TimeBasedPermissions } from "@/components/security/TimeBasedPermissions";
+import { SessionSettings } from "@/components/security/SessionSettings";
+import { RateLimitMonitoring } from "@/components/security/RateLimitMonitoring";
 
 export default function Profile() {
   const { user, updateProfile, loading: authLoading } = useAuth();
@@ -91,7 +94,7 @@ export default function Profile() {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
@@ -99,14 +102,6 @@ export default function Profile() {
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Security
-            </TabsTrigger>
-            <TabsTrigger value="sessions" className="flex items-center gap-2">
-              <Monitor className="h-4 w-4" />
-              Sessions
-            </TabsTrigger>
-            <TabsTrigger value="api-keys" className="flex items-center gap-2">
-              <Key className="h-4 w-4" />
-              API Keys
             </TabsTrigger>
           </TabsList>
 
@@ -178,16 +173,41 @@ export default function Profile() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="security">
-            <MFASetup />
-          </TabsContent>
+          <TabsContent value="security" className="space-y-6">
+            <Tabs defaultValue="mfa" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="mfa">MFA</TabsTrigger>
+                <TabsTrigger value="sessions">Sessions</TabsTrigger>
+                <TabsTrigger value="api-keys">API Keys</TabsTrigger>
+                <TabsTrigger value="time-permissions">Time-Based</TabsTrigger>
+                <TabsTrigger value="session-settings">Settings</TabsTrigger>
+                <TabsTrigger value="rate-monitoring">Rate Limits</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="sessions">
-            <SessionManagement />
-          </TabsContent>
+              <TabsContent value="mfa">
+                <MFASetup />
+              </TabsContent>
 
-          <TabsContent value="api-keys">
-            <APIKeyManagement />
+              <TabsContent value="sessions">
+                <SessionManagement />
+              </TabsContent>
+
+              <TabsContent value="api-keys">
+                <APIKeyManagement />
+              </TabsContent>
+
+              <TabsContent value="time-permissions">
+                <TimeBasedPermissions />
+              </TabsContent>
+
+              <TabsContent value="session-settings">
+                <SessionSettings />
+              </TabsContent>
+
+              <TabsContent value="rate-monitoring">
+                <RateLimitMonitoring />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </div>
