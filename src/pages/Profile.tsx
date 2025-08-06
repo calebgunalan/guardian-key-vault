@@ -15,6 +15,8 @@ import { APIKeyManagement } from "@/components/security/APIKeyManagement";
 import { TimeBasedPermissions } from "@/components/security/TimeBasedPermissions";
 import { SessionSettings } from "@/components/security/SessionSettings";
 import { RateLimitMonitoring } from "@/components/security/RateLimitMonitoring";
+import { OAuthConfiguration } from "@/components/security/OAuthConfiguration";
+import { ApprovalWorkflows } from "@/components/security/ApprovalWorkflows";
 
 export default function Profile() {
   const { user, updateProfile, loading: authLoading } = useAuth();
@@ -175,13 +177,15 @@ export default function Profile() {
 
           <TabsContent value="security" className="space-y-6">
             <Tabs defaultValue="mfa" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-8">
                 <TabsTrigger value="mfa">MFA</TabsTrigger>
                 <TabsTrigger value="sessions">Sessions</TabsTrigger>
                 <TabsTrigger value="api-keys">API Keys</TabsTrigger>
                 <TabsTrigger value="time-permissions">Time-Based</TabsTrigger>
                 <TabsTrigger value="session-settings">Settings</TabsTrigger>
                 <TabsTrigger value="rate-monitoring">Rate Limits</TabsTrigger>
+                <TabsTrigger value="oauth">OAuth/SSO</TabsTrigger>
+                <TabsTrigger value="approvals">Approvals</TabsTrigger>
               </TabsList>
 
               <TabsContent value="mfa">
@@ -206,6 +210,14 @@ export default function Profile() {
 
               <TabsContent value="rate-monitoring">
                 <RateLimitMonitoring />
+              </TabsContent>
+
+              <TabsContent value="oauth">
+                <OAuthConfiguration />
+              </TabsContent>
+
+              <TabsContent value="approvals">
+                <ApprovalWorkflows />
               </TabsContent>
             </Tabs>
           </TabsContent>

@@ -55,6 +55,95 @@ export type Database = {
           },
         ]
       }
+      approval_requests: {
+        Row: {
+          approval_history: Json | null
+          completed_at: string | null
+          created_at: string
+          current_step: number
+          expires_at: string | null
+          id: string
+          requester_id: string
+          resource_data: Json
+          resource_type: string
+          status: string
+          updated_at: string
+          workflow_id: string | null
+        }
+        Insert: {
+          approval_history?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          expires_at?: string | null
+          id?: string
+          requester_id: string
+          resource_data: Json
+          resource_type: string
+          status?: string
+          updated_at?: string
+          workflow_id?: string | null
+        }
+        Update: {
+          approval_history?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          expires_at?: string | null
+          id?: string
+          requester_id?: string
+          resource_data?: Json
+          resource_type?: string
+          status?: string
+          updated_at?: string
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_requests_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "approval_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      approval_workflows: {
+        Row: {
+          approval_steps: Json
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          resource_type: string
+          updated_at: string
+        }
+        Insert: {
+          approval_steps?: Json
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          resource_type: string
+          updated_at?: string
+        }
+        Update: {
+          approval_steps?: Json
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          resource_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -88,6 +177,54 @@ export type Database = {
           resource_id?: string | null
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      oauth_providers: {
+        Row: {
+          authorization_url: string | null
+          client_id: string | null
+          client_secret: string | null
+          config: Json | null
+          created_at: string
+          display_name: string
+          id: string
+          is_enabled: boolean
+          name: string
+          scope: string | null
+          token_url: string | null
+          updated_at: string
+          user_info_url: string | null
+        }
+        Insert: {
+          authorization_url?: string | null
+          client_id?: string | null
+          client_secret?: string | null
+          config?: Json | null
+          created_at?: string
+          display_name: string
+          id?: string
+          is_enabled?: boolean
+          name: string
+          scope?: string | null
+          token_url?: string | null
+          updated_at?: string
+          user_info_url?: string | null
+        }
+        Update: {
+          authorization_url?: string | null
+          client_id?: string | null
+          client_secret?: string | null
+          config?: Json | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_enabled?: boolean
+          name?: string
+          scope?: string | null
+          token_url?: string | null
+          updated_at?: string
+          user_info_url?: string | null
         }
         Relationships: []
       }
@@ -176,6 +313,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sso_role_mappings: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          is_active: boolean
+          mapped_role: Database["public"]["Enums"]["system_role"]
+          provider: string
+          provider_claim_key: string
+          provider_claim_value: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          is_active?: boolean
+          mapped_role: Database["public"]["Enums"]["system_role"]
+          provider: string
+          provider_claim_key: string
+          provider_claim_value: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_active?: boolean
+          mapped_role?: Database["public"]["Enums"]["system_role"]
+          provider?: string
+          provider_claim_key?: string
+          provider_claim_value?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       temporary_role_assignments: {
         Row: {
@@ -487,6 +660,19 @@ export type Database = {
           _user_agent?: string
         }
         Returns: string
+      }
+      process_approval_request: {
+        Args: {
+          _request_id: string
+          _action: string
+          _approver_id: string
+          _comments?: string
+        }
+        Returns: boolean
+      }
+      process_sso_login: {
+        Args: { _user_id: string; _provider: string; _user_metadata: Json }
+        Returns: undefined
       }
     }
     Enums: {
