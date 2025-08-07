@@ -180,6 +180,144 @@ export type Database = {
         }
         Relationships: []
       }
+      compliance_reports: {
+        Row: {
+          created_at: string
+          date_range_end: string | null
+          date_range_start: string | null
+          generated_by: string
+          id: string
+          report_data: Json
+          report_type: string
+        }
+        Insert: {
+          created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
+          generated_by: string
+          id?: string
+          report_data: Json
+          report_type: string
+        }
+        Update: {
+          created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
+          generated_by?: string
+          id?: string
+          report_data?: Json
+          report_type?: string
+        }
+        Relationships: []
+      }
+      emergency_access_tokens: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string
+          granted_permissions: Json
+          id: string
+          is_active: boolean
+          reason: string
+          token_hash: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at: string
+          granted_permissions?: Json
+          id?: string
+          is_active?: boolean
+          reason: string
+          token_hash: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          granted_permissions?: Json
+          id?: string
+          is_active?: boolean
+          reason?: string
+          token_hash?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
+      group_permissions: {
+        Row: {
+          assigned_at: string
+          assigned_by: string
+          group_id: string
+          id: string
+          permission_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by: string
+          group_id: string
+          id?: string
+          permission_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string
+          group_id?: string
+          id?: string
+          permission_id?: string
+        }
+        Relationships: []
+      }
+      ip_access_rules: {
+        Row: {
+          applies_to: string
+          created_at: string
+          created_by: string
+          id: string
+          ip_address: unknown | null
+          ip_range: unknown | null
+          is_active: boolean
+          name: string
+          rule_type: string
+          target_group_ids: string[] | null
+          target_user_ids: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          applies_to: string
+          created_at?: string
+          created_by: string
+          id?: string
+          ip_address?: unknown | null
+          ip_range?: unknown | null
+          is_active?: boolean
+          name: string
+          rule_type: string
+          target_group_ids?: string[] | null
+          target_user_ids?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          applies_to?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          ip_address?: unknown | null
+          ip_range?: unknown | null
+          is_active?: boolean
+          name?: string
+          rule_type?: string
+          target_group_ids?: string[] | null
+          target_user_ids?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       oauth_providers: {
         Row: {
           authorization_url: string | null
@@ -225,6 +363,54 @@ export type Database = {
           token_url?: string | null
           updated_at?: string
           user_info_url?: string | null
+        }
+        Relationships: []
+      }
+      password_policies: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          lockout_duration_minutes: number
+          max_login_attempts: number
+          min_length: number
+          password_expiry_days: number | null
+          password_history_count: number | null
+          require_lowercase: boolean
+          require_numbers: boolean
+          require_special_chars: boolean
+          require_uppercase: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          lockout_duration_minutes?: number
+          max_login_attempts?: number
+          min_length?: number
+          password_expiry_days?: number | null
+          password_history_count?: number | null
+          require_lowercase?: boolean
+          require_numbers?: boolean
+          require_special_chars?: boolean
+          require_uppercase?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          lockout_duration_minutes?: number
+          max_login_attempts?: number
+          min_length?: number
+          password_expiry_days?: number | null
+          password_history_count?: number | null
+          require_lowercase?: boolean
+          require_numbers?: boolean
+          require_special_chars?: boolean
+          require_uppercase?: boolean
+          updated_at?: string
         }
         Relationships: []
       }
@@ -433,6 +619,48 @@ export type Database = {
           },
         ]
       }
+      trusted_devices: {
+        Row: {
+          created_at: string
+          device_fingerprint: string
+          device_name: string | null
+          device_type: string | null
+          expires_at: string | null
+          id: string
+          ip_address: unknown | null
+          is_trusted: boolean
+          last_used_at: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_fingerprint: string
+          device_name?: string | null
+          device_type?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_trusted?: boolean
+          last_used_at?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_fingerprint?: string
+          device_name?: string | null
+          device_type?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_trusted?: boolean
+          last_used_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_api_keys: {
         Row: {
           created_at: string
@@ -472,6 +700,57 @@ export type Database = {
           permissions?: Json | null
           rate_limit?: number | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_group_memberships: {
+        Row: {
+          assigned_at: string
+          assigned_by: string
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by: string
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_groups: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -609,6 +888,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_user_group_permissions: {
+        Args: { _user_id: string; _action: string; _resource: string }
+        Returns: boolean
+      }
+      generate_emergency_token: {
+        Args: {
+          _reason: string
+          _permissions: Json
+          _expires_in_hours?: number
+        }
+        Returns: string
+      }
       get_effective_user_role: {
         Args: { _user_id: string }
         Returns: string
@@ -618,6 +909,10 @@ export type Database = {
         Returns: Database["public"]["Enums"]["system_role"]
       }
       has_enhanced_permission: {
+        Args: { _user_id: string; _action: string; _resource: string }
+        Returns: boolean
+      }
+      has_enhanced_permission_v2: {
         Args: { _user_id: string; _action: string; _resource: string }
         Returns: boolean
       }
