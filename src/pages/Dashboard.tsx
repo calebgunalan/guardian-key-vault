@@ -88,37 +88,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Shield className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">IAM Dashboard</h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user.user_metadata?.avatar_url} />
-                <AvatarFallback>
-                  {user.email?.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-medium">{user.email}</span>
-              <Badge variant={getRoleColor(userRole || 'user')}>
-                {userRole || 'user'}
-              </Badge>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-6 py-8">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Profile Card */}
           <Card>
@@ -286,7 +256,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
-      </main>
     </div>
   );
 }

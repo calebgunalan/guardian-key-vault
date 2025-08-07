@@ -147,8 +147,7 @@ export default function Users() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-6 py-8">
         <div className="mb-6">
           <Button 
             variant="outline" 
@@ -227,7 +226,6 @@ export default function Users() {
             </Table>
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }

@@ -154,8 +154,7 @@ const AuditLogs = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex items-center gap-4 mb-8">
           <Button
             variant="outline"
@@ -283,7 +282,6 @@ const AuditLogs = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 };
