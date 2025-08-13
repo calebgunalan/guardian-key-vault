@@ -52,7 +52,10 @@ export function useQuantumSecurity() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setQuantumKeys(data || []);
+      setQuantumKeys((data || []).map(key => ({
+        ...key,
+        key_type: key.key_type as 'kem' | 'signature'
+      })));
     } catch (error) {
       console.error('Error fetching quantum keys:', error);
     } finally {

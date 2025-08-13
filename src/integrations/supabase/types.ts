@@ -516,6 +516,82 @@ export type Database = {
         }
         Relationships: []
       }
+      quantum_keys: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_type: string
+          public_key: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_type: string
+          public_key: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_type?: string
+          public_key?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quantum_keys_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      quantum_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          is_quantum_verified: boolean
+          quantum_signature: string | null
+          session_token_hash: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          is_quantum_verified?: boolean
+          quantum_signature?: string | null
+          session_token_hash: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_quantum_verified?: boolean
+          quantum_signature?: string | null
+          session_token_hash?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quantum_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           created_at: string
@@ -712,6 +788,7 @@ export type Database = {
           expires_at: string | null
           id: string
           is_active: boolean
+          is_quantum_safe: boolean | null
           key_hash: string
           key_prefix: string
           last_used_at: string | null
@@ -725,6 +802,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          is_quantum_safe?: boolean | null
           key_hash: string
           key_prefix: string
           last_used_at?: string | null
@@ -738,6 +816,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          is_quantum_safe?: boolean | null
           key_hash?: string
           key_prefix?: string
           last_used_at?: string | null
@@ -835,6 +914,7 @@ export type Database = {
           created_at: string
           id: string
           is_enabled: boolean
+          is_quantum_safe: boolean | null
           secret: string | null
           updated_at: string
           user_id: string
@@ -844,6 +924,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_enabled?: boolean
+          is_quantum_safe?: boolean | null
           secret?: string | null
           updated_at?: string
           user_id: string
@@ -853,11 +934,50 @@ export type Database = {
           created_at?: string
           id?: string
           is_enabled?: boolean
+          is_quantum_safe?: boolean | null
           secret?: string | null
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      user_quantum_settings: {
+        Row: {
+          created_at: string
+          id: string
+          kem_private_key_encrypted: string | null
+          quantum_enabled: boolean
+          signature_private_key_encrypted: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kem_private_key_encrypted?: string | null
+          quantum_enabled?: boolean
+          signature_private_key_encrypted?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kem_private_key_encrypted?: string | null
+          quantum_enabled?: boolean
+          signature_private_key_encrypted?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_quantum_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

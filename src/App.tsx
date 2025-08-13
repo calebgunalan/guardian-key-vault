@@ -7,13 +7,14 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Layout from "./components/Layout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/Profile";
-import Users from "./pages/admin/Users";
-import Roles from "./pages/admin/Roles";
-import Permissions from "./pages/admin/Permissions";
-import AuditLogs from "./pages/admin/AuditLogs";
-import NotFound from "./pages/NotFound";
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
+import QuantumSecurity from './pages/QuantumSecurity';
+import Users from './pages/admin/Users';
+import Roles from './pages/admin/Roles';
+import Permissions from './pages/admin/Permissions';
+import AuditLogs from './pages/admin/AuditLogs';
+import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/quantum-security" element={<QuantumSecurity />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/admin/users" element={<Users />} />
               <Route path="/admin/roles" element={<Roles />} />

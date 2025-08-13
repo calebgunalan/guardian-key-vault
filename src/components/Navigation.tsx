@@ -5,19 +5,20 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PermissionGate, AdminGate } from "@/components/PermissionGate";
-import {
-  Shield,
-  Users,
-  Settings,
-  LogOut,
-  Activity,
-  Key,
-  Lock,
-  Clock,
-  CheckCircle,
-  BarChart3,
-  Home,
-  User
+import { 
+  Shield, 
+  Users, 
+  Settings, 
+  LogOut, 
+  Activity, 
+  Key, 
+  Lock, 
+  Clock, 
+  CheckCircle, 
+  BarChart3, 
+  Home, 
+  User,
+  Atom
 } from "lucide-react";
 
 export default function Navigation() {
@@ -44,6 +45,7 @@ export default function Navigation() {
 
   const navigationItems = [
     { path: "/dashboard", icon: Home, label: "Dashboard" },
+    { path: "/quantum-security", icon: Atom, label: "Quantum Security" },
     { path: "/profile", icon: User, label: "Profile" },
   ];
 
