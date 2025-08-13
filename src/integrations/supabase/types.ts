@@ -218,6 +218,54 @@ export type Database = {
           },
         ]
       }
+      directory_integrations: {
+        Row: {
+          attribute_mappings: Json
+          bind_credentials_encrypted: string
+          connection_string: string
+          created_at: string
+          created_by: string
+          directory_type: string
+          id: string
+          is_active: boolean
+          last_sync_at: string | null
+          name: string
+          sync_enabled: boolean
+          sync_interval_hours: number
+          updated_at: string
+        }
+        Insert: {
+          attribute_mappings?: Json
+          bind_credentials_encrypted: string
+          connection_string: string
+          created_at?: string
+          created_by: string
+          directory_type: string
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          name: string
+          sync_enabled?: boolean
+          sync_interval_hours?: number
+          updated_at?: string
+        }
+        Update: {
+          attribute_mappings?: Json
+          bind_credentials_encrypted?: string
+          connection_string?: string
+          created_at?: string
+          created_by?: string
+          directory_type?: string
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          name?: string
+          sync_enabled?: boolean
+          sync_interval_hours?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       emergency_access_tokens: {
         Row: {
           created_at: string
@@ -317,6 +365,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      hardware_tokens: {
+        Row: {
+          certificate_id: string | null
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          public_key: string
+          registered_at: string
+          serial_number: string
+          token_type: string
+          user_id: string
+        }
+        Insert: {
+          certificate_id?: string | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          public_key: string
+          registered_at?: string
+          serial_number: string
+          token_type: string
+          user_id: string
+        }
+        Update: {
+          certificate_id?: string | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          public_key?: string
+          registered_at?: string
+          serial_number?: string
+          token_type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       ip_access_rules: {
         Row: {
@@ -516,6 +600,180 @@ export type Database = {
         }
         Relationships: []
       }
+      quantum_attack_logs: {
+        Row: {
+          attack_signature: string
+          attack_type: string
+          detected_at: string
+          detection_method: string
+          id: string
+          is_blocked: boolean
+          metadata: Json | null
+          severity: string
+          source_ip: unknown | null
+          target_resource: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          attack_signature: string
+          attack_type: string
+          detected_at?: string
+          detection_method: string
+          id?: string
+          is_blocked?: boolean
+          metadata?: Json | null
+          severity: string
+          source_ip?: unknown | null
+          target_resource?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          attack_signature?: string
+          attack_type?: string
+          detected_at?: string
+          detection_method?: string
+          id?: string
+          is_blocked?: boolean
+          metadata?: Json | null
+          severity?: string
+          source_ip?: unknown | null
+          target_resource?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
+      quantum_certificates: {
+        Row: {
+          certificate_data: string
+          certificate_type: string
+          created_at: string
+          id: string
+          is_revoked: boolean
+          issuer: string
+          public_key: string
+          revocation_reason: string | null
+          revoked_at: string | null
+          serial_number: string
+          subject: string
+          updated_at: string
+          user_id: string
+          valid_from: string
+          valid_until: string
+        }
+        Insert: {
+          certificate_data: string
+          certificate_type: string
+          created_at?: string
+          id?: string
+          is_revoked?: boolean
+          issuer: string
+          public_key: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          serial_number: string
+          subject: string
+          updated_at?: string
+          user_id: string
+          valid_from: string
+          valid_until: string
+        }
+        Update: {
+          certificate_data?: string
+          certificate_type?: string
+          created_at?: string
+          id?: string
+          is_revoked?: boolean
+          issuer?: string
+          public_key?: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          serial_number?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+          valid_from?: string
+          valid_until?: string
+        }
+        Relationships: []
+      }
+      quantum_comm_channels: {
+        Row: {
+          channel_name: string
+          channel_type: string
+          created_at: string
+          created_by: string
+          encryption_algorithm: string
+          id: string
+          is_active: boolean
+          key_exchange_method: string
+          participants: Json
+        }
+        Insert: {
+          channel_name: string
+          channel_type: string
+          created_at?: string
+          created_by: string
+          encryption_algorithm?: string
+          id?: string
+          is_active?: boolean
+          key_exchange_method?: string
+          participants?: Json
+        }
+        Update: {
+          channel_name?: string
+          channel_type?: string
+          created_at?: string
+          created_by?: string
+          encryption_algorithm?: string
+          id?: string
+          is_active?: boolean
+          key_exchange_method?: string
+          participants?: Json
+        }
+        Relationships: []
+      }
+      quantum_key_policies: {
+        Row: {
+          auto_rotation_enabled: boolean
+          backup_required: boolean
+          compliance_framework: string | null
+          created_at: string
+          created_by: string
+          escrow_required: boolean
+          id: string
+          key_type: string
+          policy_name: string
+          rotation_interval_days: number
+          updated_at: string
+        }
+        Insert: {
+          auto_rotation_enabled?: boolean
+          backup_required?: boolean
+          compliance_framework?: string | null
+          created_at?: string
+          created_by: string
+          escrow_required?: boolean
+          id?: string
+          key_type: string
+          policy_name: string
+          rotation_interval_days?: number
+          updated_at?: string
+        }
+        Update: {
+          auto_rotation_enabled?: boolean
+          backup_required?: boolean
+          compliance_framework?: string | null
+          created_at?: string
+          created_by?: string
+          escrow_required?: boolean
+          id?: string
+          key_type?: string
+          policy_name?: string
+          rotation_interval_days?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quantum_keys: {
         Row: {
           created_at: string
@@ -554,6 +812,45 @@ export type Database = {
           },
         ]
       }
+      quantum_pki_roots: {
+        Row: {
+          algorithm: string
+          created_at: string
+          created_by: string
+          description: string | null
+          expires_at: string
+          id: string
+          is_active: boolean
+          name: string
+          private_key_encrypted: string
+          root_certificate: string
+        }
+        Insert: {
+          algorithm?: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          expires_at: string
+          id?: string
+          is_active?: boolean
+          name: string
+          private_key_encrypted: string
+          root_certificate: string
+        }
+        Update: {
+          algorithm?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          private_key_encrypted?: string
+          root_certificate?: string
+        }
+        Relationships: []
+      }
       quantum_sessions: {
         Row: {
           created_at: string
@@ -591,6 +888,45 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      quantum_sso_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          jwt_claims_hash: string | null
+          provider: string
+          quantum_signature: string
+          saml_response_hash: string | null
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          is_active?: boolean
+          jwt_claims_hash?: string | null
+          provider: string
+          quantum_signature: string
+          saml_response_hash?: string | null
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          jwt_claims_hash?: string | null
+          provider?: string
+          quantum_signature?: string
+          saml_response_hash?: string | null
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       role_permissions: {
         Row: {
@@ -827,6 +1163,75 @@ export type Database = {
         }
         Relationships: []
       }
+      user_behavioral_patterns: {
+        Row: {
+          confidence_score: number
+          created_at: string
+          id: string
+          last_updated: string
+          pattern_data: Json
+          pattern_type: string
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number
+          created_at?: string
+          id?: string
+          last_updated?: string
+          pattern_data: Json
+          pattern_type: string
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number
+          created_at?: string
+          id?: string
+          last_updated?: string
+          pattern_data?: Json
+          pattern_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_biometric_data: {
+        Row: {
+          biometric_type: string
+          created_at: string
+          encryption_key_id: string
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          quality_score: number
+          template_hash: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          biometric_type: string
+          created_at?: string
+          encryption_key_id: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          quality_score?: number
+          template_hash: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          biometric_type?: string
+          created_at?: string
+          encryption_key_id?: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          quality_score?: number
+          template_hash?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_group_memberships: {
         Row: {
           assigned_at: string
@@ -979,6 +1384,36 @@ export type Database = {
           },
         ]
       }
+      user_risk_scores: {
+        Row: {
+          calculated_at: string
+          expires_at: string
+          id: string
+          risk_factors: Json
+          risk_level: string
+          risk_score: number
+          user_id: string
+        }
+        Insert: {
+          calculated_at?: string
+          expires_at?: string
+          id?: string
+          risk_factors?: Json
+          risk_level: string
+          risk_score: number
+          user_id: string
+        }
+        Update: {
+          calculated_at?: string
+          expires_at?: string
+          id?: string
+          risk_factors?: Json
+          risk_level?: string
+          risk_score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           assigned_at: string
@@ -1075,6 +1510,48 @@ export type Database = {
           session_token?: string
           user_agent?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      zero_trust_policies: {
+        Row: {
+          actions: Json
+          conditions: Json
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          policy_type: string
+          severity: string
+          updated_at: string
+        }
+        Insert: {
+          actions: Json
+          conditions: Json
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          policy_type: string
+          severity: string
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          policy_type?: string
+          severity?: string
+          updated_at?: string
         }
         Relationships: []
       }

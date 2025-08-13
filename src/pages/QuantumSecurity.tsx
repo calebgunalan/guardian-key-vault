@@ -1,5 +1,5 @@
 import { QuantumSecurityDashboard } from '@/components/security/QuantumSecurityDashboard';
-import { QuantumSecurityManagement } from '@/components/security/QuantumSecurityManagement';
+import { EnterpriseQuantumDashboard } from '@/components/security/EnterpriseQuantumDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function QuantumSecurity() {
@@ -16,7 +16,7 @@ export default function QuantumSecurity() {
         </TabsContent>
         
         <TabsContent value="management" className="space-y-4">
-          <QuantumSecurityManagement />
+          <EnterpriseQuantumDashboard />
         </TabsContent>
       </Tabs>
     </div>
