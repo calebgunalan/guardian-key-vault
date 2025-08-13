@@ -56,7 +56,12 @@ export function useEmergencyAccess() {
 
       if (error) throw error;
 
-      setTokens(data || []);
+      setTokens((data || []).map(item => ({
+        ...item,
+        granted_permissions: Array.isArray(item.granted_permissions) ? item.granted_permissions : [],
+        creator_profile: ((item.creator_profile as any)?.email) ? item.creator_profile as { email: string; full_name?: string } : { email: '', full_name: null },
+        user_profile: ((item.user_profile as any)?.email) ? item.user_profile as { email: string; full_name?: string } : { email: '', full_name: null }
+      })));
     } catch (error) {
       console.error('Error fetching emergency tokens:', error);
       setTokens([]);

@@ -55,13 +55,7 @@ export function useUserGroups() {
     try {
       const { data, error } = await supabase
         .from('user_groups')
-        .select(`
-          *,
-          group_permissions (
-            *,
-            permissions (*)
-          )
-        `)
+        .select('*')
         .order('name');
 
       if (error) throw error;
@@ -77,7 +71,7 @@ export function useUserGroups() {
           return {
             ...group,
             member_count: count || 0,
-            permissions: group.group_permissions || []
+            permissions: []
           };
         })
       );
@@ -249,7 +243,17 @@ export function useUserGroups() {
         .eq('user_id', userId);
 
       if (error) throw error;
-      return data || [];
+      return (data || []).map(item => ({
+        ...item,
+        user_groups: ((item.user_groups as any)?.id) ? item.user_groups as UserGroup : { 
+          id: '', 
+          name: '', 
+          description: null, 
+          created_at: '', 
+          updated_at: '', 
+          created_by: '' 
+        }
+      }));
     } catch (error) {
       console.error('Error fetching user groups:', error);
       return [];

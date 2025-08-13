@@ -47,7 +47,8 @@ export function useComplianceReports() {
 
       setReports((data || []).map(item => ({
         ...item,
-        report_type: item.report_type as ComplianceReport['report_type']
+        report_type: item.report_type as ComplianceReport['report_type'],
+        generator_profile: ((item.generator_profile as any)?.email) ? item.generator_profile as { email: string; full_name?: string } : { email: '', full_name: null }
       })));
     } catch (error) {
       console.error('Error fetching compliance reports:', error);
