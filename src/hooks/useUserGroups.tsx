@@ -245,7 +245,7 @@ export function useUserGroups() {
       if (error) throw error;
       return (data || []).map(item => ({
         ...item,
-        user_groups: ((item.user_groups as any)?.id) ? item.user_groups as UserGroup : { 
+        user_groups: ((item.user_groups as any)?.id) ? item.user_groups as unknown as UserGroup : { 
           id: '', 
           name: '', 
           description: null, 

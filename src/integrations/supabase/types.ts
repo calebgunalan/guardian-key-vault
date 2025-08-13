@@ -208,7 +208,15 @@ export type Database = {
           report_data?: Json
           report_type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "compliance_reports_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       emergency_access_tokens: {
         Row: {
@@ -247,7 +255,22 @@ export type Database = {
           used_at?: string | null
           used_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "emergency_access_tokens_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "emergency_access_tokens_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       group_permissions: {
         Row: {
@@ -271,7 +294,29 @@ export type Database = {
           id?: string
           permission_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "group_permissions_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "group_permissions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "user_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ip_access_rules: {
         Row: {
@@ -725,7 +770,29 @@ export type Database = {
           id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_group_memberships_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_group_memberships_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "user_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_group_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       user_groups: {
         Row: {
@@ -752,7 +819,15 @@ export type Database = {
           name?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_groups_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       user_mfa_settings: {
         Row: {
