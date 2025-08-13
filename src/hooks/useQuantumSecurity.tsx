@@ -87,8 +87,8 @@ export function useQuantumSecurity() {
   }> => {
     try {
       // Generate quantum-resistant key pairs
-      const kemKeyPair = QuantumKEM.generateKeyPair();
-      const signatureKeyPair = QuantumSignatures.generateKeyPair();
+      const kemKeyPair = await QuantumKEM.generateKeyPair();
+      const signatureKeyPair = await QuantumSignatures.generateKeyPair();
 
       // Store public keys in database
       const { error: kemError } = await supabase
@@ -137,8 +137,8 @@ export function useQuantumSecurity() {
 
   const generateQuantumSession = async (): Promise<string> => {
     try {
-      const sessionToken = QuantumSessionTokens.generateToken();
-      const tokenHash = QuantumSessionTokens.hashToken(sessionToken);
+      const sessionToken = await QuantumSessionTokens.generateToken();
+      const tokenHash = await QuantumSessionTokens.hashToken(sessionToken);
 
       // Get user's signature key
       const signatureKey = quantumKeys.find(k => k.key_type === 'signature');
@@ -167,8 +167,8 @@ export function useQuantumSecurity() {
 
   const generateQuantumAPIKey = async (name: string, permissions: string[] = []): Promise<string> => {
     try {
-      const apiKey = QuantumSessionTokens.generateAPIKey();
-      const keyHash = QuantumSessionTokens.hashToken(apiKey);
+      const apiKey = await QuantumSessionTokens.generateAPIKey();
+      const keyHash = await QuantumSessionTokens.hashToken(apiKey);
 
       const { error } = await supabase
         .from('user_api_keys')
@@ -228,7 +228,7 @@ export function useQuantumSecurity() {
       const messageBytes = new TextEncoder().encode(message);
       const signatureBytes = new Uint8Array(signature.split(',').map(Number));
 
-      return QuantumSignatures.verify(signatureBytes, messageBytes, publicKey);
+      return await QuantumSignatures.verify(signatureBytes, messageBytes, publicKey);
     } catch (error) {
       console.error('Error verifying quantum signature:', error);
       return false;
@@ -241,8 +241,8 @@ export function useQuantumSecurity() {
     qrCode: string;
   }> => {
     try {
-      const secret = QuantumMFA.generateSecret();
-      const backupCodes = QuantumMFA.generateBackupCodes();
+      const secret = await QuantumMFA.generateSecret();
+      const backupCodes = await QuantumMFA.generateBackupCodes();
       
       // Store encrypted in database
       const { error } = await supabase
@@ -266,8 +266,8 @@ export function useQuantumSecurity() {
     }
   };
 
-  const verifyQuantumMFA = (token: string, secret: string): boolean => {
-    return QuantumMFA.verifyTOTP(token, secret);
+  const verifyQuantumMFA = async (token: string, secret: string): Promise<boolean> => {
+    return await QuantumMFA.verifyTOTP(token, secret);
   };
 
   const getQuantumSecurityStatus = () => {

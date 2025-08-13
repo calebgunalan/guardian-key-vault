@@ -1,12 +1,18 @@
 import * as sodium from 'libsodium-wrappers';
 
-// Initialize libsodium
-await sodium.ready;
-
 /**
  * Quantum-Resistant Cryptography Library
  * Uses libsodium's quantum-safe algorithms and best practices
  */
+
+let sodiumReady = false;
+
+async function ensureSodiumReady() {
+  if (!sodiumReady) {
+    await sodium.ready;
+    sodiumReady = true;
+  }
+}
 
 export interface QuantumKeyPair {
   publicKey: Uint8Array;
@@ -28,7 +34,8 @@ export interface QuantumEncryptedData {
  * Will be upgraded to ML-KEM when available
  */
 export class QuantumKEM {
-  static generateKeyPair(): QuantumKeyPair {
+  static async generateKeyPair(): Promise<QuantumKeyPair> {
+    await ensureSodiumReady();
     const keyPair = sodium.crypto_box_keypair();
     return {
       publicKey: keyPair.publicKey,
@@ -36,9 +43,10 @@ export class QuantumKEM {
     };
   }
 
-  static encapsulate(publicKey: Uint8Array): { sharedSecret: Uint8Array; ciphertext: Uint8Array } {
+  static async encapsulate(publicKey: Uint8Array): Promise<{ sharedSecret: Uint8Array; ciphertext: Uint8Array }> {
+    await ensureSodiumReady();
     // Generate ephemeral key pair
-    const ephemeral = this.generateKeyPair();
+    const ephemeral = await this.generateKeyPair();
     
     // Derive shared secret using ECDH
     const sharedSecret = sodium.crypto_box_beforenm(publicKey, ephemeral.privateKey);
@@ -49,7 +57,8 @@ export class QuantumKEM {
     };
   }
 
-  static decapsulate(ciphertext: Uint8Array, privateKey: Uint8Array): Uint8Array {
+  static async decapsulate(ciphertext: Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
+    await ensureSodiumReady();
     // The ciphertext is the ephemeral public key
     return sodium.crypto_box_beforenm(ciphertext, privateKey);
   }
@@ -60,7 +69,8 @@ export class QuantumKEM {
  * Enhanced with additional security measures
  */
 export class QuantumSignatures {
-  static generateKeyPair(): QuantumKeyPair {
+  static async generateKeyPair(): Promise<QuantumKeyPair> {
+    await ensureSodiumReady();
     const keyPair = sodium.crypto_sign_keypair();
     return {
       publicKey: keyPair.publicKey,
@@ -68,11 +78,13 @@ export class QuantumSignatures {
     };
   }
 
-  static sign(message: Uint8Array, privateKey: Uint8Array): Uint8Array {
+  static async sign(message: Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
+    await ensureSodiumReady();
     return sodium.crypto_sign_detached(message, privateKey);
   }
 
-  static verify(signature: Uint8Array, message: Uint8Array, publicKey: Uint8Array): boolean {
+  static async verify(signature: Uint8Array, message: Uint8Array, publicKey: Uint8Array): Promise<boolean> {
+    await ensureSodiumReady();
     return sodium.crypto_sign_verify_detached(signature, message, publicKey);
   }
 }
@@ -82,16 +94,19 @@ export class QuantumSignatures {
  * Provides 256-bit security against quantum attacks
  */
 export class QuantumSymmetric {
-  static generateKey(): Uint8Array {
+  static async generateKey(): Promise<Uint8Array> {
+    await ensureSodiumReady();
     return sodium.randombytes_buf(32); // 256-bit key
   }
 
-  static generateNonce(): Uint8Array {
+  static async generateNonce(): Promise<Uint8Array> {
+    await ensureSodiumReady();
     return sodium.randombytes_buf(24); // 192-bit nonce for XChaCha20
   }
 
-  static encrypt(message: Uint8Array, key: Uint8Array): { ciphertext: Uint8Array; nonce: Uint8Array } {
-    const nonce = this.generateNonce();
+  static async encrypt(message: Uint8Array, key: Uint8Array): Promise<{ ciphertext: Uint8Array; nonce: Uint8Array }> {
+    await ensureSodiumReady();
+    const nonce = await this.generateNonce();
     const ciphertext = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
       message,
       null,
@@ -102,7 +117,8 @@ export class QuantumSymmetric {
     return { ciphertext, nonce };
   }
 
-  static decrypt(ciphertext: Uint8Array, nonce: Uint8Array, key: Uint8Array): Uint8Array {
+  static async decrypt(ciphertext: Uint8Array, nonce: Uint8Array, key: Uint8Array): Promise<Uint8Array> {
+    await ensureSodiumReady();
     return sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
       null,
       ciphertext,
@@ -118,14 +134,15 @@ export class QuantumSymmetric {
  * Provides protection against quantum-enabled brute force attacks
  */
 export class QuantumPasswordHash {
-  static hash(
+  static async hash(
     password: string, 
     salt?: Uint8Array,
     options = {
-      opsLimit: sodium.crypto_pwhash_OPSLIMIT_SENSITIVE,
-      memLimit: sodium.crypto_pwhash_MEMLIMIT_SENSITIVE
+      opsLimit: 4,
+      memLimit: 33554432
     }
-  ): { hash: Uint8Array; salt: Uint8Array } {
+  ): Promise<{ hash: Uint8Array; salt: Uint8Array }> {
+    await ensureSodiumReady();
     const actualSalt = salt || sodium.randombytes_buf(32);
     const hash = sodium.crypto_pwhash(
       64, // 512-bit output
@@ -138,14 +155,15 @@ export class QuantumPasswordHash {
     return { hash, salt: actualSalt };
   }
 
-  static verify(password: string, hash: Uint8Array, salt: Uint8Array): boolean {
+  static async verify(password: string, hash: Uint8Array, salt: Uint8Array): Promise<boolean> {
+    await ensureSodiumReady();
     try {
       const computed = sodium.crypto_pwhash(
         64,
         password,
         salt,
-        sodium.crypto_pwhash_OPSLIMIT_SENSITIVE,
-        sodium.crypto_pwhash_MEMLIMIT_SENSITIVE,
+        4,
+        33554432,
         sodium.crypto_pwhash_ALG_ARGON2ID13
       );
       return sodium.memcmp(hash, computed);
@@ -160,19 +178,20 @@ export class QuantumPasswordHash {
  * Uses cryptographically secure random sources
  */
 export class QuantumRandom {
-  static bytes(length: number): Uint8Array {
+  static async bytes(length: number): Promise<Uint8Array> {
+    await ensureSodiumReady();
     return sodium.randombytes_buf(length);
   }
 
-  static string(length: number, charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'): string {
-    const bytes = this.bytes(length);
+  static async string(length: number, charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'): Promise<string> {
+    const bytes = await this.bytes(length);
     return Array.from(bytes)
       .map(byte => charset[byte % charset.length])
       .join('');
   }
 
-  static uuid(): string {
-    const bytes = this.bytes(16);
+  static async uuid(): Promise<string> {
+    const bytes = await this.bytes(16);
     bytes[6] = (bytes[6] & 0x0f) | 0x40; // Version 4
     bytes[8] = (bytes[8] & 0x3f) | 0x80; // Variant 10
     
@@ -195,12 +214,13 @@ export class QuantumRandom {
  * Uses HKDF-SHA3-512 for quantum resistance
  */
 export class QuantumKeyDerivation {
-  static deriveKey(
+  static async deriveKey(
     masterKey: Uint8Array,
     info: string,
     length: number = 32,
     salt?: Uint8Array
-  ): Uint8Array {
+  ): Promise<Uint8Array> {
+    await ensureSodiumReady();
     const actualSalt = salt || new Uint8Array(32); // Use zero salt if none provided
     
     // Use HKDF-SHA3-512 equivalent implementation
@@ -235,19 +255,22 @@ export class QuantumKeyDerivation {
  * Generates cryptographically secure session tokens
  */
 export class QuantumSessionTokens {
-  static generateToken(length: number = 64): string {
-    const bytes = QuantumRandom.bytes(length);
+  static async generateToken(length: number = 64): Promise<string> {
+    await ensureSodiumReady();
+    const bytes = await QuantumRandom.bytes(length);
     return sodium.to_base64(bytes, sodium.base64_variants.URLSAFE_NO_PADDING);
   }
 
-  static generateAPIKey(): string {
+  static async generateAPIKey(): Promise<string> {
+    await ensureSodiumReady();
     const prefix = 'qsk_'; // Quantum-Safe Key prefix
-    const keyBytes = QuantumRandom.bytes(32);
+    const keyBytes = await QuantumRandom.bytes(32);
     const key = sodium.to_base64(keyBytes, sodium.base64_variants.URLSAFE_NO_PADDING);
     return prefix + key;
   }
 
-  static hashToken(token: string): string {
+  static async hashToken(token: string): Promise<string> {
+    await ensureSodiumReady();
     const hash = sodium.crypto_generichash(64, token);
     return sodium.to_hex(hash);
   }
@@ -258,18 +281,22 @@ export class QuantumSessionTokens {
  * Implements TOTP with quantum-resistant backing
  */
 export class QuantumMFA {
-  static generateSecret(): string {
-    const secretBytes = QuantumRandom.bytes(32);
+  static async generateSecret(): Promise<string> {
+    const secretBytes = await QuantumRandom.bytes(32);
     return sodium.to_base64(secretBytes, sodium.base64_variants.ORIGINAL).replace(/=/g, ''); // Remove padding
   }
 
-  static generateBackupCodes(count: number = 10): string[] {
-    return Array.from({ length: count }, () => 
-      QuantumRandom.string(8, '0123456789').match(/.{4}/g)?.join('-') || ''
-    );
+  static async generateBackupCodes(count: number = 10): Promise<string[]> {
+    const codes = [];
+    for (let i = 0; i < count; i++) {
+      const code = await QuantumRandom.string(8, '0123456789');
+      codes.push(code.match(/.{4}/g)?.join('-') || '');
+    }
+    return codes;
   }
 
-  static generateTOTP(secret: string, window: number = 0): string {
+  static async generateTOTP(secret: string, window: number = 0): Promise<string> {
+    await ensureSodiumReady();
     const time = Math.floor(Date.now() / 1000 / 30) + window;
     const timeBytes = new Uint8Array(8);
     new DataView(timeBytes.buffer).setBigUint64(0, BigInt(time), false);
@@ -290,9 +317,9 @@ export class QuantumMFA {
     return code.toString().padStart(6, '0');
   }
 
-  static verifyTOTP(token: string, secret: string, window: number = 1): boolean {
+  static async verifyTOTP(token: string, secret: string, window: number = 1): Promise<boolean> {
     for (let i = -window; i <= window; i++) {
-      if (this.generateTOTP(secret, i) === token) {
+      if (await this.generateTOTP(secret, i) === token) {
         return true;
       }
     }
