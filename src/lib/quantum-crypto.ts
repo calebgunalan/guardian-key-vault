@@ -7,7 +7,7 @@ import * as sodium from 'libsodium-wrappers';
 
 let sodiumReady = false;
 
-async function ensureSodiumReady() {
+export async function ensureSodiumReady() {
   if (!sodiumReady) {
     await sodium.ready;
     sodiumReady = true;

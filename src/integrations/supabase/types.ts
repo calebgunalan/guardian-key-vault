@@ -1473,6 +1473,36 @@ export type Database = {
         }
         Relationships: []
       }
+      system_security_config: {
+        Row: {
+          config_key: string
+          config_value: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_applied: boolean
+          updated_at: string
+        }
+        Insert: {
+          config_key: string
+          config_value?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_applied?: boolean
+          updated_at?: string
+        }
+        Update: {
+          config_key?: string
+          config_value?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_applied?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       temporary_role_assignments: {
         Row: {
           assigned_by: string
