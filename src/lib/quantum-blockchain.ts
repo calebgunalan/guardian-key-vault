@@ -106,7 +106,7 @@ export class QuantumBlockchain {
     
     const completeTxn: QuantumTransaction = {
       ...transaction,
-      quantumSignature: Buffer.from(signature).toString('base64'),
+      quantumSignature: Buffer.from(await signature).toString('base64'),
       integrity_hash: Buffer.from(integrityHash).toString('hex')
     };
     
@@ -270,7 +270,7 @@ export class QuantumBlockchain {
       hash: block.hash
     });
     
-    const signature = QuantumSignatures.sign(
+    const signature = await QuantumSignatures.sign(
       new TextEncoder().encode(blockData),
       keyPair.privateKey
     );
