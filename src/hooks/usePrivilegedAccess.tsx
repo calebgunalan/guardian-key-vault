@@ -71,7 +71,10 @@ export function usePrivilegedAccess() {
       if (error) throw error;
       setAccounts((data || []).map(item => ({
         ...item,
-        account_type: item.account_type as PrivilegedAccountData['account_type']
+        account_type: item.account_type as PrivilegedAccountData['account_type'],
+        checkout_duration: item.checkout_duration as string,
+        rotation_interval: item.rotation_interval as string,
+        access_policy: item.access_policy as any
       })));
     } catch (error) {
       console.error('Error fetching privileged accounts:', error);
