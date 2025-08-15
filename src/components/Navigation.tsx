@@ -51,7 +51,7 @@ export default function Navigation() {
 
   const adminItems = [
     { path: "/admin/quantum-control", icon: Atom, label: "Quantum Control", adminOnly: true },
-    { path: "/admin/users", icon: Users, label: "User Management", adminOnly: true },
+    { path: "/admin/user-management", icon: Users, label: "User Management", adminOnly: true },
     { path: "/admin/zero-trust", icon: Shield, label: "Zero Trust", adminOnly: true },
     { path: "/admin/permissions", icon: Settings, label: "Permissions", permission: "MANAGE", resource: "permissions" },
     { path: "/admin/audit-logs", icon: Activity, label: "Audit Logs", permission: "VIEW", resource: "audit_logs" },
@@ -66,10 +66,15 @@ export default function Navigation() {
           <h1 className="text-xl font-bold">IAM System</h1>
         </div>
         <div className="flex items-center space-x-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={user.user_metadata?.avatar_url} />
-            <AvatarFallback>
-              {user.user_metadata?.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0).toUpperCase()}
+          <Avatar className="h-10 w-10 border-2 border-primary/20">
+            <AvatarImage 
+              src={user.user_metadata?.avatar_url || user.user_metadata?.picture}
+              className="object-cover"
+            />
+            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
+              {user.user_metadata?.full_name?.charAt(0)?.toUpperCase() || 
+               user.user_metadata?.name?.charAt(0)?.toUpperCase() || 
+               user.email?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">

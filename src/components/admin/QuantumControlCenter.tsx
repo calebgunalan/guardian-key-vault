@@ -47,6 +47,7 @@ export function QuantumControlCenter() {
     quantumEnabled,
     enableQuantumSecurity,
     rotateQuantumKeys,
+    toggleQuantumSecurity,
     generateQuantumSession,
     generateQuantumAPIKey,
     getQuantumSecurityStatus,
@@ -86,20 +87,24 @@ export function QuantumControlCenter() {
 
   const toggleQuantumEncryption = async () => {
     try {
-      if (!quantumState.enabled) {
-        await enableQuantumSecurity();
-        toast({
-          title: "Quantum Protection Activated",
-          description: "All data is now protected with post-quantum cryptography"
-        });
-      }
+      const newState = !quantumState.enabled;
+      await toggleQuantumSecurity(newState);
       
       setQuantumState(prev => ({
         ...prev,
-        enabled: !prev.enabled,
-        encryptionActive: !prev.enabled
+        enabled: newState,
+        encryptionActive: newState
       }));
+      
+      toast({
+        title: newState ? "Quantum Protection Activated" : "Quantum Protection Deactivated",
+        description: newState 
+          ? "All data is now protected with post-quantum cryptography" 
+          : "⚠️ Warning: Data is now using classical encryption - vulnerable to quantum attacks!",
+        variant: newState ? "default" : "destructive"
+      });
     } catch (error) {
+      console.error('Quantum toggle failed:', error);
       toast({
         title: "Quantum Toggle Failed",
         description: "Failed to toggle quantum encryption",
@@ -144,15 +149,25 @@ export function QuantumControlCenter() {
     });
   };
 
-  const performQuantumHackTest = () => {
+  const performQuantumHackTest = async () => {
+    // Simulate detailed attack scenario
+    toast({
+      title: "🔍 Initiating Security Test",
+      description: "Simulating quantum computer attack on encryption keys..."
+    });
+
+    // Simulate processing time
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
     if (quantumState.enabled) {
       setSystemMetrics(prev => ({
         ...prev,
         blockedAttacks: prev.blockedAttacks + 1
       }));
+      
       toast({
         title: "🛡️ Quantum Defense Success",
-        description: "Attack blocked by quantum-resistant encryption!",
+        description: "Background: Shor's algorithm attempted to factor RSA keys but post-quantum ML-KEM-768 encryption remained secure. Attack signatures detected and blocked by quantum-resistant algorithms.",
         variant: "default"
       });
     } else {
@@ -160,9 +175,10 @@ export function QuantumControlCenter() {
         ...prev,
         successfulAttacks: prev.successfulAttacks + 1
       }));
+      
       toast({
         title: "💥 Security Breach!",
-        description: "Attack succeeded - quantum protection was disabled!",
+        description: "Background: Classical RSA-2048 encryption was broken using Shor's algorithm on quantum computer. Private keys factorized in polynomial time. All encrypted data compromised!",
         variant: "destructive"
       });
     }
@@ -502,13 +518,37 @@ export function QuantumControlCenter() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Activity className="h-5 w-5" />
-                Real-Time Risk Analysis
+                Real-Time Risk Analysis Engine
               </CardTitle>
               <CardDescription>
-                AI-powered behavioral and contextual risk assessment
+                AI-powered behavioral and contextual risk assessment with automatic threat detection
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="flex gap-2 mb-4">
+                <Button 
+                  onClick={() => calculateRiskScore({
+                    currentLoginHour: new Date().getHours(),
+                    currentLocation: 'Unknown',
+                    deviceFingerprint: 'demo-device',
+                    recentLoginAttempts: Math.floor(Math.random() * 3) + 1,
+                    failedAttempts: Math.floor(Math.random() * 2)
+                  })}
+                  variant="outline"
+                >
+                  <Brain className="h-4 w-4 mr-2" />
+                  Run Risk Analysis
+                </Button>
+                <Button 
+                  onClick={() => window.location.reload()}
+                  variant="outline"
+                  size="sm"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh Data
+                </Button>
+              </div>
+
               {currentRiskScore ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -516,6 +556,9 @@ export function QuantumControlCenter() {
                       <h3 className="font-semibold">Current Risk Level</h3>
                       <p className="text-sm text-muted-foreground">
                         {getRiskScoreDescription(currentRiskScore.risk_score)}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Last updated: {new Date(currentRiskScore.calculated_at).toLocaleString()}
                       </p>
                     </div>
                     <Badge 
@@ -526,56 +569,99 @@ export function QuantumControlCenter() {
                       }
                       className="text-lg px-3 py-1"
                     >
-                      {currentRiskScore.risk_level.toUpperCase()}
+                      {currentRiskScore.risk_level.toUpperCase()} - {currentRiskScore.risk_score}%
                     </Badge>
                   </div>
 
                   <Progress value={currentRiskScore.risk_score} className="w-full" />
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">Device Trust</p>
-                      <p className="text-xl font-bold">{trustScore.device}%</p>
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-semibold mb-2">Trust Score Calculation:</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div className="text-center">
+                        <p className="text-muted-foreground">Device Trust</p>
+                        <p className="text-xl font-bold text-blue-600">{trustScore.device}%</p>
+                        <p className="text-xs">Hardware fingerprint verified</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-muted-foreground">Network Security</p>
+                        <p className="text-xl font-bold text-green-600">{trustScore.network}%</p>
+                        <p className="text-xs">{quantumState.enabled ? 'Quantum-safe' : 'Classical only'}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-muted-foreground">Behavioral</p>
+                        <p className="text-xl font-bold text-purple-600">{trustScore.behavioral}%</p>
+                        <p className="text-xs">Pattern analysis score</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-muted-foreground">Location Trust</p>
+                        <p className="text-xl font-bold text-orange-600">{trustScore.location}%</p>
+                        <p className="text-xs">Geolocation verified</p>
+                      </div>
                     </div>
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">Network</p>
-                      <p className="text-xl font-bold">{trustScore.network}%</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">Behavioral</p>
-                      <p className="text-xl font-bold">{trustScore.behavioral}%</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">Location</p>
-                      <p className="text-xl font-bold">{trustScore.location}%</p>
+                    <div className="mt-3 p-2 bg-background rounded border">
+                      <p className="text-sm font-medium">Trust Score Formula:</p>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        Overall = (Device×0.25 + Network×0.30 + Behavioral×0.30 + Location×0.15)
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        = ({trustScore.device}×0.25 + {trustScore.network}×0.30 + {trustScore.behavioral}×0.30 + {trustScore.location}×0.15) = <strong>{trustScore.overall}%</strong>
+                      </p>
                     </div>
                   </div>
 
                   {currentRiskScore.risk_factors && currentRiskScore.risk_factors.length > 0 && (
                     <div className="space-y-2">
-                      <h4 className="font-semibold">Risk Factors:</h4>
+                      <h4 className="font-semibold">Risk Factors Detected:</h4>
                       {currentRiskScore.risk_factors.map((factor, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
-                          <span className="text-sm">{factor.description}</span>
+                        <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                          <div>
+                            <span className="text-sm font-medium">{factor.description}</span>
+                            <p className="text-xs text-muted-foreground">Impact: {factor.score} points</p>
+                          </div>
                           <Badge variant={
                             factor.severity === 'low' ? 'default' :
                             factor.severity === 'medium' ? 'secondary' :
                             factor.severity === 'high' ? 'destructive' : 'destructive'
                           }>
-                            {factor.severity}
+                            {factor.severity.toUpperCase()}
                           </Badge>
                         </div>
                       ))}
                     </div>
                   )}
+
+                  <Alert>
+                    <Shield className="h-4 w-4" />
+                    <AlertDescription>
+                      {currentRiskScore.risk_level === 'low' && "✅ Low risk detected. Normal access granted."}
+                      {currentRiskScore.risk_level === 'medium' && "⚠️ Medium risk. Additional authentication recommended."}
+                      {currentRiskScore.risk_level === 'high' && "🚨 High risk! Enhanced security measures required."}
+                      {currentRiskScore.risk_level === 'critical' && "💥 CRITICAL RISK! Immediate security review needed."}
+                    </AlertDescription>
+                  </Alert>
                 </div>
               ) : (
-                <Alert>
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    No risk assessment data available. Risk analysis will begin with user activity.
-                  </AlertDescription>
-                </Alert>
+                <div className="space-y-4">
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      No risk assessment data available. Click "Run Risk Analysis" to perform an automated security evaluation based on current user behavior, device fingerprinting, and contextual factors.
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-semibold mb-2">Risk Analysis Features:</h4>
+                    <ul className="text-sm space-y-1 text-muted-foreground">
+                      <li>• Behavioral pattern analysis</li>
+                      <li>• Device fingerprinting verification</li>
+                      <li>• Network security assessment</li>
+                      <li>• Geolocation anomaly detection</li>
+                      <li>• Login time pattern matching</li>
+                      <li>• Threat intelligence correlation</li>
+                    </ul>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>

@@ -69,7 +69,7 @@ export function useQuantumSecurity() {
         .from('user_quantum_settings')
         .select('quantum_enabled')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         throw error;
@@ -116,12 +116,15 @@ export function useQuantumSecurity() {
       // Enable quantum security for user
       const { error: settingsError } = await supabase
         .from('user_quantum_settings')
-        .upsert({
-          user_id: user?.id,
-          quantum_enabled: true,
-          kem_private_key_encrypted: Array.from(kemKeyPair.privateKey).join(','),
-          signature_private_key_encrypted: Array.from(signatureKeyPair.privateKey).join(',')
-        });
+        .upsert(
+          {
+            user_id: user?.id,
+            quantum_enabled: true,
+            kem_private_key_encrypted: Array.from(kemKeyPair.privateKey).join(','),
+            signature_private_key_encrypted: Array.from(signatureKeyPair.privateKey).join(',')
+          },
+          { onConflict: 'user_id' }
+        );
 
       if (settingsError) throw settingsError;
 
@@ -200,9 +203,50 @@ export function useQuantumSecurity() {
 
       if (deactivateError) throw deactivateError;
 
-      // Generate new keys
-      await enableQuantumSecurity();
+      // Generate new quantum-resistant key pairs
+      const kemKeyPair = await QuantumKEM.generateKeyPair();
+      const signatureKeyPair = await QuantumSignatures.generateKeyPair();
 
+      // Store new public keys in database
+      const { error: kemError } = await supabase
+        .from('quantum_keys')
+        .insert({
+          user_id: user?.id,
+          key_type: 'kem',
+          public_key: Array.from(kemKeyPair.publicKey).join(','),
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+        });
+
+      if (kemError) throw kemError;
+
+      const { error: sigError } = await supabase
+        .from('quantum_keys')
+        .insert({
+          user_id: user?.id,
+          key_type: 'signature',
+          public_key: Array.from(signatureKeyPair.publicKey).join(','),
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+        });
+
+      if (sigError) throw sigError;
+
+      // Update quantum settings with new keys
+      const { error: settingsError } = await supabase
+        .from('user_quantum_settings')
+        .upsert(
+          {
+            user_id: user?.id,
+            quantum_enabled: true,
+            kem_private_key_encrypted: Array.from(kemKeyPair.privateKey).join(','),
+            signature_private_key_encrypted: Array.from(signatureKeyPair.privateKey).join(',')
+          },
+          { onConflict: 'user_id' }
+        );
+
+      if (settingsError) throw settingsError;
+
+      await fetchQuantumKeys();
+      
       // Log the key rotation
       await supabase.rpc('log_audit_event', {
         _action: 'QUANTUM_KEY_ROTATION',
@@ -211,6 +255,32 @@ export function useQuantumSecurity() {
       });
     } catch (error) {
       console.error('Error rotating quantum keys:', error);
+      throw error;
+    }
+  };
+
+  const toggleQuantumSecurity = async (enable: boolean): Promise<void> => {
+    try {
+      if (enable && quantumKeys.length === 0) {
+        // If enabling and no keys exist, create them
+        await enableQuantumSecurity();
+      } else {
+        // Just toggle the setting
+        const { error } = await supabase
+          .from('user_quantum_settings')
+          .upsert(
+            {
+              user_id: user?.id,
+              quantum_enabled: enable
+            },
+            { onConflict: 'user_id' }
+          );
+
+        if (error) throw error;
+        setQuantumEnabled(enable);
+      }
+    } catch (error) {
+      console.error('Error toggling quantum security:', error);
       throw error;
     }
   };
@@ -291,6 +361,7 @@ export function useQuantumSecurity() {
     generateQuantumSession,
     generateQuantumAPIKey,
     rotateQuantumKeys,
+    toggleQuantumSecurity,
     verifyQuantumSignature,
     setupQuantumMFA,
     verifyQuantumMFA,
