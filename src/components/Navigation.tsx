@@ -50,8 +50,9 @@ export default function Navigation() {
   ];
 
   const adminItems = [
-    { path: "/admin/users", icon: Users, label: "Users", permission: "VIEW", resource: "users" },
-    { path: "/admin/roles", icon: Shield, label: "Roles", adminOnly: true },
+    { path: "/admin/quantum-control", icon: Atom, label: "Quantum Control", adminOnly: true },
+    { path: "/admin/users", icon: Users, label: "User Management", adminOnly: true },
+    { path: "/admin/zero-trust", icon: Shield, label: "Zero Trust", adminOnly: true },
     { path: "/admin/permissions", icon: Settings, label: "Permissions", permission: "MANAGE", resource: "permissions" },
     { path: "/admin/audit-logs", icon: Activity, label: "Audit Logs", permission: "VIEW", resource: "audit_logs" },
   ];
@@ -68,11 +69,13 @@ export default function Navigation() {
           <Avatar className="h-8 w-8">
             <AvatarImage src={user.user_metadata?.avatar_url} />
             <AvatarFallback>
-              {user.email?.charAt(0).toUpperCase()}
+              {user.user_metadata?.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="text-sm font-medium truncate">{user.email}</span>
+            <span className="text-sm font-medium truncate">
+              {user.user_metadata?.full_name || user.email}
+            </span>
             <Badge variant={getRoleColor(userRole || 'user')} className="text-xs w-fit">
               {userRole || 'user'}
             </Badge>
