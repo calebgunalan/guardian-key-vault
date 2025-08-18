@@ -188,6 +188,13 @@ export function UserManagementPanel() {
         description: `User role updated to ${newRole}`
       });
 
+      // Refresh user role if updating current user
+      if (userId === currentUser?.id) {
+        setTimeout(() => {
+          window.location.reload(); // Force refresh to update role in context
+        }, 1000);
+      }
+
       fetchUsers();
     } catch (error: any) {
       console.error('Error updating role:', error);
@@ -415,8 +422,11 @@ export function UserManagementPanel() {
                       </TableCell>
                       <TableCell>
                         <Badge variant={user.email_confirmed_at ? "default" : "secondary"}>
-                          {user.email_confirmed_at ? "Confirmed" : "Pending"}
+                          {user.email_confirmed_at ? "Verified" : "Unverified"}
                         </Badge>
+                        {!user.email_confirmed_at && (
+                          <p className="text-xs text-orange-600 mt-1">Email verification pending</p>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
