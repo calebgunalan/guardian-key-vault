@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -1437,6 +1437,42 @@ export type Database = {
           },
         ]
       }
+      security_attacks: {
+        Row: {
+          attack_data: Json | null
+          attack_type: string
+          blocked: boolean
+          detected_at: string
+          id: string
+          quantum_protected: boolean
+          severity: string
+          source_ip: unknown | null
+          target_resource: string | null
+        }
+        Insert: {
+          attack_data?: Json | null
+          attack_type: string
+          blocked?: boolean
+          detected_at?: string
+          id?: string
+          quantum_protected?: boolean
+          severity: string
+          source_ip?: unknown | null
+          target_resource?: string | null
+        }
+        Update: {
+          attack_data?: Json | null
+          attack_type?: string
+          blocked?: boolean
+          detected_at?: string
+          id?: string
+          quantum_protected?: boolean
+          severity?: string
+          source_ip?: unknown | null
+          target_resource?: string | null
+        }
+        Relationships: []
+      }
       sso_role_mappings: {
         Row: {
           created_at: string
@@ -1630,6 +1666,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      trust_score_factors: {
+        Row: {
+          calculated_at: string
+          details: Json | null
+          factor_name: string
+          factor_type: string
+          id: string
+          score: number
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          calculated_at?: string
+          details?: Json | null
+          factor_name: string
+          factor_type: string
+          id?: string
+          score: number
+          user_id: string
+          weight?: number
+        }
+        Update: {
+          calculated_at?: string
+          details?: Json | null
+          factor_name?: string
+          factor_type?: string
+          id?: string
+          score?: number
+          user_id?: string
+          weight?: number
+        }
+        Relationships: []
       }
       trusted_devices: {
         Row: {
@@ -2115,15 +2184,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_network_trust: {
+        Args: { user_ip: unknown }
+        Returns: number
+      }
       check_user_group_permissions: {
-        Args: { _user_id: string; _action: string; _resource: string }
+        Args: { _action: string; _resource: string; _user_id: string }
         Returns: boolean
       }
       generate_emergency_token: {
         Args: {
-          _reason: string
-          _permissions: Json
           _expires_in_hours?: number
+          _permissions: Json
+          _reason: string
         }
         Returns: string
       }
@@ -2131,43 +2204,47 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
+      get_location_from_ip: {
+        Args: { ip_address: unknown }
+        Returns: Json
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["system_role"]
       }
       has_enhanced_permission: {
-        Args: { _user_id: string; _action: string; _resource: string }
+        Args: { _action: string; _resource: string; _user_id: string }
         Returns: boolean
       }
       has_enhanced_permission_v2: {
-        Args: { _user_id: string; _action: string; _resource: string }
+        Args: { _action: string; _resource: string; _user_id: string }
         Returns: boolean
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["system_role"]
+          _user_id: string
         }
         Returns: boolean
       }
       has_temporary_role: {
-        Args: { _user_id: string; _role: string }
+        Args: { _role: string; _user_id: string }
         Returns: boolean
       }
       has_time_based_permission: {
         Args: {
-          _user_id: string
+          _check_time?: string
           _permission_action: string
           _permission_resource: string
-          _check_time?: string
+          _user_id: string
         }
         Returns: boolean
       }
       log_api_rate_limit: {
         Args: {
           _api_key_id: string
-          _user_id: string
           _endpoint: string
+          _user_id: string
           _window_minutes?: number
         }
         Returns: boolean
@@ -2175,25 +2252,25 @@ export type Database = {
       log_audit_event: {
         Args: {
           _action: string
-          _resource: string
-          _resource_id?: string
           _details?: Json
           _ip_address?: unknown
+          _resource: string
+          _resource_id?: string
           _user_agent?: string
         }
         Returns: string
       }
       process_approval_request: {
         Args: {
-          _request_id: string
           _action: string
           _approver_id: string
           _comments?: string
+          _request_id: string
         }
         Returns: boolean
       }
       process_sso_login: {
-        Args: { _user_id: string; _provider: string; _user_metadata: Json }
+        Args: { _provider: string; _user_id: string; _user_metadata: Json }
         Returns: undefined
       }
     }
