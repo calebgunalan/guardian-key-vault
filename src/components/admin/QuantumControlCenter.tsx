@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { useQuantumSecurity } from '@/hooks/useQuantumSecurity';
+import { useSecurityAttacks } from '@/hooks/useSecurityAttacks';
 import { useRiskAssessment } from '@/hooks/useRiskAssessment';
 import { useZeroTrust } from '@/hooks/useZeroTrust';
 import { useAuth } from '@/hooks/useAuth';
@@ -64,6 +65,7 @@ export function QuantumControlCenter() {
   } = useQuantumSecurity();
   const { currentRiskScore, calculateRiskScore, getRiskScoreDescription } = useRiskAssessment();
   const { policies, calculateTrustScore } = useZeroTrust();
+  const { totalAttacks, getAttackStats, simulateAttacks } = useSecurityAttacks();
 
   const [quantumState, setQuantumState] = useState<QuantumState>({
     enabled: false,
@@ -133,6 +135,17 @@ export function QuantumControlCenter() {
       }));
     } catch (error) {
       console.error('Error fetching attack stats:', error);
+    }
+  };
+  const handleSimulateAttack = async () => {
+    try {
+      await simulateAttacks();
+      toast({
+        title: "Attack Simulated",
+        description: "A security attack has been simulated and logged"
+      });
+    } catch (error) {
+      console.error('Error simulating attack:', error);
     }
   };
 
@@ -656,7 +669,11 @@ export function QuantumControlCenter() {
                 </Button>
                 <Button variant="destructive" onClick={performQuantumHackTest}>
                   <AlertTriangle className="h-4 w-4 mr-2" />
-                  Simulate Attack
+                  Simulate Quantum Attack
+                </Button>
+                <Button onClick={handleSimulateAttack} variant="outline">
+                  <Activity className="h-4 w-4 mr-2" />
+                  Log Random Security Event
                 </Button>
               </div>
 

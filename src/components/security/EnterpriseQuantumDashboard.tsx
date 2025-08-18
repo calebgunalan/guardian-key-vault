@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuantumPKI } from '@/hooks/useQuantumPKI';
 import { useRiskAssessment } from '@/hooks/useRiskAssessment';
 import { useZeroTrust } from '@/hooks/useZeroTrust';
+import { useTrustScore } from '@/hooks/useTrustScore';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   Shield, 
   Award, 
@@ -21,22 +23,19 @@ import {
 } from 'lucide-react';
 
 export function EnterpriseQuantumDashboard() {
-  const { certificates, loading: pkiLoading } = useQuantumPKI();
+  const { user } = useAuth();
+  const { certificates, loading: pkiLoading, requestCertificate } = useQuantumPKI();
   const { currentRiskScore, loading: riskLoading } = useRiskAssessment();
-  const { policies, calculateTrustScore } = useZeroTrust();
-  
-  const [trustScore, setTrustScore] = useState({ overall: 85, device: 90, network: 80, behavioral: 85, location: 90 });
+  const { policies } = useZeroTrust();
+  const { getOverallTrustScore, getTrustScoreByType, networkTrust, loading: trustLoading } = useTrustScore();
 
-  useEffect(() => {
-    // Simulate trust score calculation
-    const score = calculateTrustScore({
-      deviceTrusted: true,
-      networkTrusted: true,
-      locationTrusted: true,
-      behavioralScore: 85
-    });
-    setTrustScore(score);
-  }, []);
+  const trustScore = {
+    overall: getOverallTrustScore(),
+    device: getTrustScoreByType('device'),
+    network: getTrustScoreByType('network'),
+    behavioral: getTrustScoreByType('behavioral'),
+    location: getTrustScoreByType('location')
+  };
 
   const getStatusColor = (score: number) => {
     if (score >= 90) return 'hsl(var(--quantum-success))';
@@ -51,7 +50,15 @@ export function EnterpriseQuantumDashboard() {
     return 'Poor';
   };
 
-  if (pkiLoading || riskLoading) {
+  const handleRequestCertificate = async () => {
+    try {
+      await requestCertificate('identity', `CN=${user?.email}`, 365);
+    } catch (error) {
+      console.error('Error requesting certificate:', error);
+    }
+  };
+
+  if (pkiLoading || riskLoading || trustLoading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -217,7 +224,7 @@ export function EnterpriseQuantumDashboard() {
                 <div className="text-center py-8">
                   <Award className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">No quantum certificates found</p>
-                  <Button className="mt-4">Request Certificate</Button>
+                  <Button className="mt-4" onClick={handleRequestCertificate}>Request Certificate</Button>
                 </div>
               ) : (
                 <div className="space-y-4">

@@ -190,9 +190,8 @@ export function UserManagementPanel() {
 
       // Refresh user role if updating current user
       if (userId === currentUser?.id) {
-        setTimeout(() => {
-          window.location.reload(); // Force refresh to update role in context
-        }, 1000);
+        // Force auth context refresh
+        window.location.reload();
       }
 
       fetchUsers();

@@ -68,7 +68,7 @@ export default function Navigation() {
         <div className="flex items-center space-x-2">
           <Avatar className="h-10 w-10 border-2 border-primary/20">
             <AvatarImage 
-              src={user.user_metadata?.avatar_url || user.user_metadata?.picture}
+              src={user.user_metadata?.avatar_url || user.user_metadata?.picture || `https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`}
               className="object-cover"
             />
             <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
@@ -78,8 +78,8 @@ export default function Navigation() {
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="text-sm font-medium truncate">
-              {user.user_metadata?.full_name || user.email}
+            <span className="text-sm font-medium truncate w-36">
+              {user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0]}
             </span>
             <Badge variant={getRoleColor(userRole || 'user')} className="text-xs w-fit">
               {userRole || 'user'}
