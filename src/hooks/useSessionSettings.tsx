@@ -5,12 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 export interface SessionSettings {
   id: string;
   user_id: string;
-  session_timeout_minutes: number;
+  max_session_duration: any;
+  idle_timeout: any;
   max_concurrent_sessions: number;
-  require_mfa_for_sensitive_ops: boolean;
-  allowed_ip_ranges?: string[];
-  block_concurrent_sessions: boolean;
-  timezone: string;
+  require_reauth_for_sensitive: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -64,11 +62,10 @@ export function useSessionSettings() {
         .from('user_session_settings')
         .insert({
           user_id: user.id,
-          session_timeout_minutes: 30,
+          max_session_duration: '24 hours',
+          idle_timeout: '2 hours',
           max_concurrent_sessions: 5,
-          require_mfa_for_sensitive_ops: true,
-          block_concurrent_sessions: false,
-          timezone: 'UTC'
+          require_reauth_for_sensitive: true
         })
         .select()
         .single();
@@ -111,12 +108,10 @@ export function useSessionSettings() {
 
   const resetToDefaults = async () => {
     const defaultSettings = {
-      session_timeout_minutes: 30,
+      max_session_duration: '24 hours',
+      idle_timeout: '2 hours',
       max_concurrent_sessions: 5,
-      require_mfa_for_sensitive_ops: true,
-      allowed_ip_ranges: null,
-      block_concurrent_sessions: false,
-      timezone: 'UTC'
+      require_reauth_for_sensitive: true
     };
 
     return updateSessionSettings(defaultSettings);

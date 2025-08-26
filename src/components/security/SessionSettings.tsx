@@ -42,8 +42,8 @@ export function SessionSettings() {
         return parseInt(parts[0]) * 60 + parseInt(parts[1]);
       };
 
-      setMaxSessionHours(parseHours(sessionSettings.max_session_duration));
-      setIdleTimeoutMinutes(parseMinutes(sessionSettings.idle_timeout));
+      setMaxSessionHours(parseHours(sessionSettings.max_session_duration?.toString() || '24'));
+      setIdleTimeoutMinutes(parseMinutes(sessionSettings.idle_timeout?.toString() || '120'));
       setMaxConcurrentSessions(sessionSettings.max_concurrent_sessions);
       setRequireReauth(sessionSettings.require_reauth_for_sensitive);
     }

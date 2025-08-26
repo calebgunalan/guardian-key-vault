@@ -30,7 +30,7 @@ export function APIKeyManagement() {
     setActionLoading(true);
     try {
       const result = await generateAPIKey(newKeyName, [], newKeyRateLimit);
-      setGeneratedKey(result.full_key);
+      setGeneratedKey(result?.full_key || '');
       setShowGeneratedKey(true);
       setNewKeyName('');
       setNewKeyRateLimit(1000);
@@ -66,7 +66,7 @@ export function APIKeyManagement() {
     setActionLoading(true);
     try {
       const result = await rotateAPIKey(keyId);
-      setGeneratedKey(result.full_key);
+      setGeneratedKey(result?.full_key || '');
       setShowGeneratedKey(true);
       toast.success('API key rotated successfully');
     } catch (error) {

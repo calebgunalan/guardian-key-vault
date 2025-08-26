@@ -8,13 +8,14 @@ export interface APIKey {
   user_id: string;
   name: string;
   key_prefix: string;
-  permissions: string[];
+  key_hash: string;
+  permissions: any;
   rate_limit: number;
   last_used_at?: string;
   expires_at?: string;
   is_active: boolean;
+  is_quantum_safe: boolean;
   created_at: string;
-  updated_at: string;
 }
 
 export function useAPIKeys() {
@@ -53,8 +54,8 @@ export function useAPIKeys() {
 
     try {
       // Generate API key using quantum-safe method
-      const apiKey = QuantumSessionTokens.generateAPIKey();
-      const keyHash = QuantumSessionTokens.hashToken(apiKey);
+      const apiKey = await QuantumSessionTokens.generateAPIKey();
+      const keyHash = await QuantumSessionTokens.hashToken(apiKey);
       const keyPrefix = apiKey.substring(0, 8) + '...';
 
       const { data, error } = await supabase
@@ -66,7 +67,8 @@ export function useAPIKeys() {
           key_prefix: keyPrefix,
           permissions,
           rate_limit: rateLimit,
-          is_active: true
+          is_active: true,
+          is_quantum_safe: true
         })
         .select()
         .single();
@@ -142,16 +144,15 @@ export function useAPIKeys() {
   const rotateAPIKey = async (keyId: string) => {
     try {
       // Generate new API key
-      const newApiKey = QuantumSessionTokens.generateAPIKey();
-      const newKeyHash = QuantumSessionTokens.hashToken(newApiKey);
+      const newApiKey = await QuantumSessionTokens.generateAPIKey();
+      const newKeyHash = await QuantumSessionTokens.hashToken(newApiKey);
       const newKeyPrefix = newApiKey.substring(0, 8) + '...';
 
       const { data, error } = await supabase
         .from('user_api_keys')
         .update({
           key_hash: newKeyHash,
-          key_prefix: newKeyPrefix,
-          updated_at: new Date().toISOString()
+          key_prefix: newKeyPrefix
         })
         .eq('id', keyId)
         .eq('user_id', user?.id)

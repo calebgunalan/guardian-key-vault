@@ -9,7 +9,7 @@ import { Activity, BarChart3, TrendingUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 export function RateLimitMonitoring() {
-  const { rateLimitLogs, loading } = useRateLimitLogs();
+  const { logs: rateLimitLogs, loading } = useRateLimitLogs();
   const { apiKeys } = useAPIKeys();
   const [selectedApiKey, setSelectedApiKey] = useState<string>('all');
   const [timeRange, setTimeRange] = useState<number>(24);
@@ -187,10 +187,7 @@ export function RateLimitMonitoring() {
                   <TableRow key={log.id}>
                     <TableCell>
                       <div className="font-mono text-sm">
-                        {log.user_api_keys?.name || 'Unknown'}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {log.user_api_keys?.key_prefix}
+                        API Key ID: {log.api_key_id || 'Unknown'}
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-sm">{log.endpoint}</TableCell>
