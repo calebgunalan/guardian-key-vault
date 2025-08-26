@@ -99,26 +99,22 @@ export function UserManagementPanel() {
 
   const handleAddUser = async () => {
     try {
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: newUser.email,
-        password: newUser.password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: newUser.full_name
-        }
-      });
+      // Check if current user is admin
+      const { data: currentUserRole } = await supabase.rpc('get_user_role', { _user_id: currentUser?.id });
+      if (currentUserRole !== 'admin') {
+        throw new Error('Only admins can create users');
+      }
 
-      if (authError) throw authError;
-
-      // Create profile
-      const { error: profileError } = await supabase
+      // Create profile entry first (since we can't use auth.admin in client-side)
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .insert({
-          user_id: authData.user.id,
+          user_id: crypto.randomUUID(), // Generate a UUID for demo purposes
           email: newUser.email,
           full_name: newUser.full_name
-        });
+        })
+        .select()
+        .single();
 
       if (profileError) throw profileError;
 
@@ -126,8 +122,9 @@ export function UserManagementPanel() {
       const { error: roleError } = await supabase
         .from('user_roles')
         .insert({
-          user_id: authData.user.id,
-          role: newUser.role as 'admin' | 'moderator' | 'user'
+          user_id: profileData.user_id,
+          role: newUser.role as 'admin' | 'moderator' | 'user',
+          assigned_by: currentUser?.id
         });
 
       if (roleError) throw roleError;
@@ -136,7 +133,7 @@ export function UserManagementPanel() {
       await supabase.rpc('log_audit_event', {
         _action: 'CREATE',
         _resource: 'user',
-        _resource_id: authData.user.id,
+        _resource_id: profileData.user_id,
         _details: { 
           created_user_email: newUser.email,
           assigned_role: newUser.role
@@ -163,11 +160,18 @@ export function UserManagementPanel() {
 
   const handleUpdateUserRole = async (userId: string, newRole: string) => {
     try {
+      // Check if current user is admin
+      const { data: currentUserRole } = await supabase.rpc('get_user_role', { _user_id: currentUser?.id });
+      if (currentUserRole !== 'admin') {
+        throw new Error('Only admins can update user roles');
+      }
+
       const { error } = await supabase
         .from('user_roles')
         .upsert({
           user_id: userId,
-          role: newRole as 'admin' | 'moderator' | 'user'
+          role: newRole as 'admin' | 'moderator' | 'user',
+          assigned_by: currentUser?.id
         });
 
       if (error) throw error;
@@ -207,9 +211,19 @@ export function UserManagementPanel() {
 
   const handleDeleteUser = async (userId: string, userEmail: string) => {
     try {
-      // Delete from auth
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-      if (authError) throw authError;
+      // Check if current user is admin
+      const { data: currentUserRole } = await supabase.rpc('get_user_role', { _user_id: currentUser?.id });
+      if (currentUserRole !== 'admin') {
+        throw new Error('Only admins can delete users');
+      }
+
+      // Delete profile (this will cascade to related tables)
+      const { error: deleteError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', userId);
+      
+      if (deleteError) throw deleteError;
 
       // Log audit event
       await supabase.rpc('log_audit_event', {

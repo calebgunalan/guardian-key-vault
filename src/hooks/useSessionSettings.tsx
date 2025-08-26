@@ -5,19 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 export interface SessionSettings {
   id: string;
   user_id: string;
-  max_session_duration: string;
-  idle_timeout: string;
+  session_timeout_minutes: number;
   max_concurrent_sessions: number;
-  require_reauth_for_sensitive: boolean;
+  require_mfa_for_sensitive_ops: boolean;
+  allowed_ip_ranges?: string[];
+  block_concurrent_sessions: boolean;
+  timezone: string;
   created_at: string;
   updated_at: string;
-}
-
-export interface UpdateSessionSettingsData {
-  max_session_duration?: string;
-  idle_timeout?: string;
-  max_concurrent_sessions?: number;
-  require_reauth_for_sensitive?: boolean;
 }
 
 export function useSessionSettings() {
@@ -44,36 +39,70 @@ export function useSessionSettings() {
         .eq('user_id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      if (error && error.code !== 'PGRST116') {
         throw error;
       }
 
-      setSessionSettings(data as SessionSettings || null);
+      if (!data) {
+        // Create default settings if none exist
+        await createDefaultSettings();
+      } else {
+        setSessionSettings(data);
+      }
     } catch (error) {
       console.error('Error fetching session settings:', error);
-      setSessionSettings(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateSessionSettings = async (settings: UpdateSessionSettingsData) => {
-    if (!user) throw new Error('User not authenticated');
+  const createDefaultSettings = async () => {
+    if (!user) return;
 
     try {
       const { data, error } = await supabase
         .from('user_session_settings')
-        .upsert({
+        .insert({
           user_id: user.id,
-          ...settings,
+          session_timeout_minutes: 30,
+          max_concurrent_sessions: 5,
+          require_mfa_for_sensitive_ops: true,
+          block_concurrent_sessions: false,
+          timezone: 'UTC'
         })
         .select()
         .single();
 
       if (error) throw error;
+      setSessionSettings(data);
+    } catch (error) {
+      console.error('Error creating default session settings:', error);
+    }
+  };
 
-      setSessionSettings(data as SessionSettings);
-      return data as SessionSettings;
+  const updateSessionSettings = async (updates: Partial<SessionSettings>) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      const { data, error } = await supabase
+        .from('user_session_settings')
+        .update(updates)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Log audit event
+      await supabase.rpc('log_audit_event', {
+        _action: 'UPDATE',
+        _resource: 'session_settings',
+        _resource_id: data.id,
+        _details: updates
+      });
+
+      setSessionSettings(data);
+      return data;
     } catch (error) {
       console.error('Error updating session settings:', error);
       throw error;
@@ -81,36 +110,23 @@ export function useSessionSettings() {
   };
 
   const resetToDefaults = async () => {
-    if (!user) throw new Error('User not authenticated');
+    const defaultSettings = {
+      session_timeout_minutes: 30,
+      max_concurrent_sessions: 5,
+      require_mfa_for_sensitive_ops: true,
+      allowed_ip_ranges: null,
+      block_concurrent_sessions: false,
+      timezone: 'UTC'
+    };
 
-    try {
-      const { data, error } = await supabase
-        .from('user_session_settings')
-        .upsert({
-          user_id: user.id,
-          max_session_duration: '24 hours',
-          idle_timeout: '2 hours',
-          max_concurrent_sessions: 5,
-          require_reauth_for_sensitive: true,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setSessionSettings(data as SessionSettings);
-      return data as SessionSettings;
-    } catch (error) {
-      console.error('Error resetting session settings:', error);
-      throw error;
-    }
+    return updateSessionSettings(defaultSettings);
   };
 
   return {
     sessionSettings,
     loading,
-    fetchSessionSettings,
     updateSessionSettings,
     resetToDefaults,
+    fetchSessionSettings
   };
 }

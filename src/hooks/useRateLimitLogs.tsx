@@ -4,104 +4,85 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface RateLimitLog {
   id: string;
-  api_key_id: string;
+  api_key_id?: string;
   user_id: string;
   endpoint: string;
   request_count: number;
   window_start: string;
   window_end: string;
   created_at: string;
-  user_api_keys?: {
-    id: string;
-    name: string;
-    key_prefix: string;
-  };
 }
 
 export function useRateLimitLogs() {
   const { user } = useAuth();
-  const [rateLimitLogs, setRateLimitLogs] = useState<RateLimitLog[]>([]);
+  const [logs, setLogs] = useState<RateLimitLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       fetchRateLimitLogs();
     } else {
-      setRateLimitLogs([]);
+      setLogs([]);
       setLoading(false);
     }
   }, [user]);
 
   const fetchRateLimitLogs = async () => {
-    if (!user) return;
-
     try {
       const { data, error } = await supabase
         .from('api_rate_limit_logs')
-        .select(`
-          *,
-          user_api_keys (
-            id,
-            name,
-            key_prefix
-          )
-        `)
-        .eq('user_id', user.id)
+        .select('*')
+        .eq('user_id', user?.id)
         .order('created_at', { ascending: false })
         .limit(100);
 
       if (error) throw error;
-
-      setRateLimitLogs(data || []);
+      setLogs(data || []);
     } catch (error) {
       console.error('Error fetching rate limit logs:', error);
-      setRateLimitLogs([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const getRateLimitStats = async (apiKeyId?: string, hours: number = 24) => {
-    if (!user) return null;
+  const getLogsByEndpoint = (endpoint: string) => {
+    return logs.filter(log => log.endpoint === endpoint);
+  };
 
-    try {
-      const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
-      
-      let query = supabase
-        .from('api_rate_limit_logs')
-        .select('endpoint, request_count, window_start')
-        .eq('user_id', user.id)
-        .gte('window_start', since);
+  const getLogsByTimeRange = (startDate: Date, endDate: Date) => {
+    return logs.filter(log => {
+      const logDate = new Date(log.created_at);
+      return logDate >= startDate && logDate <= endDate;
+    });
+  };
 
-      if (apiKeyId) {
-        query = query.eq('api_key_id', apiKeyId);
-      }
+  const getTotalRequestsInPeriod = (hours: number = 24) => {
+    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
+    return logs
+      .filter(log => new Date(log.created_at) >= cutoff)
+      .reduce((total, log) => total + log.request_count, 0);
+  };
 
-      const { data, error } = await query;
+  const getTopEndpoints = (limit: number = 10) => {
+    const endpointCounts: Record<string, number> = {};
+    
+    logs.forEach(log => {
+      endpointCounts[log.endpoint] = (endpointCounts[log.endpoint] || 0) + log.request_count;
+    });
 
-      if (error) throw error;
-
-      // Aggregate stats
-      const stats = data?.reduce((acc, log) => {
-        acc.totalRequests += log.request_count;
-        acc.endpointStats[log.endpoint] = (acc.endpointStats[log.endpoint] || 0) + log.request_count;
-        return acc;
-      }, {
-        totalRequests: 0,
-        endpointStats: {} as Record<string, number>,
-      });
-
-      return stats;
-    } catch (error) {
-      console.error('Error fetching rate limit stats:', error);
-      return null;
-    }
+    return Object.entries(endpointCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, limit)
+      .map(([endpoint, count]) => ({ endpoint, count }));
   };
 
   return {
-    rateLimitLogs,
+    logs,
     loading,
     fetchRateLimitLogs,
-    getRateLimitStats,
+    getLogsByEndpoint,
+    getLogsByTimeRange,
+    getTotalRequestsInPeriod,
+    getTopEndpoints
   };
 }

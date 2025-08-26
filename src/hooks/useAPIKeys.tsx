@@ -1,20 +1,20 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "./useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import CryptoJS from "crypto-js";
+import { QuantumSessionTokens } from "@/lib/quantum-crypto";
 
 export interface APIKey {
   id: string;
   user_id: string;
   name: string;
-  key_hash: string;
   key_prefix: string;
-  permissions: any;
+  permissions: string[];
   rate_limit: number;
-  is_active: boolean;
   last_used_at?: string;
   expires_at?: string;
+  is_active: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 export function useAPIKeys() {
@@ -32,21 +32,15 @@ export function useAPIKeys() {
   }, [user]);
 
   const fetchAPIKeys = async () => {
-    if (!user) return;
-
     try {
       const { data, error } = await supabase
         .from('user_api_keys')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      setApiKeys((data || []).map(key => ({
-        ...key,
-        permissions: Array.isArray(key.permissions) ? key.permissions : []
-      })));
+      setApiKeys(data || []);
     } catch (error) {
       console.error('Error fetching API keys:', error);
     } finally {
@@ -54,22 +48,14 @@ export function useAPIKeys() {
     }
   };
 
-  const generateAPIKey = async (
-    name: string,
-    permissions: string[] = [],
-    rateLimit: number = 1000,
-    expiresAt?: Date
-  ) => {
+  const generateAPIKey = async (name: string, permissions: string[] = [], rateLimit: number = 1000) => {
     if (!user) throw new Error('User not authenticated');
 
     try {
-      // Generate a secure API key
-      const randomBytes = CryptoJS.lib.WordArray.random(32);
-      const apiKey = `iam_${randomBytes.toString(CryptoJS.enc.Hex)}`;
-      
-      // Create hash of the key for storage
-      const keyHash = CryptoJS.SHA256(apiKey).toString();
-      const keyPrefix = apiKey.substring(0, 12) + '...';
+      // Generate API key using quantum-safe method
+      const apiKey = QuantumSessionTokens.generateAPIKey();
+      const keyHash = QuantumSessionTokens.hashToken(apiKey);
+      const keyPrefix = apiKey.substring(0, 8) + '...';
 
       const { data, error } = await supabase
         .from('user_api_keys')
@@ -80,56 +66,48 @@ export function useAPIKeys() {
           key_prefix: keyPrefix,
           permissions,
           rate_limit: rateLimit,
-          expires_at: expiresAt?.toISOString(),
+          is_active: true
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      await fetchAPIKeys();
+      // Log audit event
+      await supabase.rpc('log_audit_event', {
+        _action: 'CREATE',
+        _resource: 'api_key',
+        _resource_id: data.id,
+        _details: { name, permissions, rate_limit: rateLimit }
+      });
 
-      // Return the full API key only once
-      return {
-        ...data,
-        full_key: apiKey,
-      };
+      await fetchAPIKeys();
+      return { ...data, full_key: apiKey }; // Return full key only once
     } catch (error) {
       console.error('Error generating API key:', error);
       throw error;
     }
   };
 
-  const updateAPIKey = async (
-    keyId: string,
-    updates: {
-      name?: string;
-      permissions?: string[];
-      rate_limit?: number;
-      is_active?: boolean;
-      expires_at?: Date | null;
-    }
-  ) => {
-    if (!user) throw new Error('User not authenticated');
-
+  const updateAPIKey = async (keyId: string, updates: Partial<APIKey>) => {
     try {
-      const updateData: any = { ...updates };
-      if (updates.expires_at !== undefined) {
-        updateData.expires_at = updates.expires_at?.toISOString() || null;
-      }
-
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('user_api_keys')
-        .update(updateData)
+        .update(updates)
         .eq('id', keyId)
-        .eq('user_id', user.id)
-        .select()
-        .single();
+        .eq('user_id', user?.id);
 
       if (error) throw error;
 
+      // Log audit event
+      await supabase.rpc('log_audit_event', {
+        _action: 'UPDATE',
+        _resource: 'api_key',
+        _resource_id: keyId,
+        _details: updates
+      });
+
       await fetchAPIKeys();
-      return data;
     } catch (error) {
       console.error('Error updating API key:', error);
       throw error;
@@ -137,16 +115,22 @@ export function useAPIKeys() {
   };
 
   const deleteAPIKey = async (keyId: string) => {
-    if (!user) throw new Error('User not authenticated');
-
     try {
       const { error } = await supabase
         .from('user_api_keys')
         .delete()
         .eq('id', keyId)
-        .eq('user_id', user.id);
+        .eq('user_id', user?.id);
 
       if (error) throw error;
+
+      // Log audit event
+      await supabase.rpc('log_audit_event', {
+        _action: 'DELETE',
+        _resource: 'api_key',
+        _resource_id: keyId,
+        _details: {}
+      });
 
       await fetchAPIKeys();
     } catch (error) {
@@ -155,80 +139,37 @@ export function useAPIKeys() {
     }
   };
 
-  const validateAPIKey = async (apiKey: string): Promise<APIKey | null> => {
-    try {
-      const keyHash = CryptoJS.SHA256(apiKey).toString();
-      
-      const { data, error } = await supabase
-        .from('user_api_keys')
-        .select('*')
-        .eq('key_hash', keyHash)
-        .eq('is_active', true)
-        .single();
-
-      if (error || !data) return null;
-
-      // Check if key is expired
-      if (data.expires_at && new Date(data.expires_at) < new Date()) {
-        return null;
-      }
-
-      // Update last_used_at
-      await supabase
-        .from('user_api_keys')
-        .update({ last_used_at: new Date().toISOString() })
-        .eq('id', data.id);
-
-      return {
-        ...data,
-        permissions: Array.isArray(data.permissions) ? data.permissions : []
-      };
-    } catch (error) {
-      console.error('Error validating API key:', error);
-      return null;
-    }
-  };
-
   const rotateAPIKey = async (keyId: string) => {
-    if (!user) throw new Error('User not authenticated');
-
     try {
-      // Get existing key data
-      const { data: existingKey, error: fetchError } = await supabase
-        .from('user_api_keys')
-        .select('*')
-        .eq('id', keyId)
-        .eq('user_id', user.id)
-        .single();
+      // Generate new API key
+      const newApiKey = QuantumSessionTokens.generateAPIKey();
+      const newKeyHash = QuantumSessionTokens.hashToken(newApiKey);
+      const newKeyPrefix = newApiKey.substring(0, 8) + '...';
 
-      if (fetchError || !existingKey) throw new Error('API key not found');
-
-      // Generate new key
-      const randomBytes = CryptoJS.lib.WordArray.random(32);
-      const newApiKey = `iam_${randomBytes.toString(CryptoJS.enc.Hex)}`;
-      const newKeyHash = CryptoJS.SHA256(newApiKey).toString();
-      const newKeyPrefix = newApiKey.substring(0, 12) + '...';
-
-      // Update the existing record
       const { data, error } = await supabase
         .from('user_api_keys')
         .update({
           key_hash: newKeyHash,
           key_prefix: newKeyPrefix,
+          updated_at: new Date().toISOString()
         })
         .eq('id', keyId)
-        .eq('user_id', user.id)
+        .eq('user_id', user?.id)
         .select()
         .single();
 
       if (error) throw error;
 
-      await fetchAPIKeys();
+      // Log audit event
+      await supabase.rpc('log_audit_event', {
+        _action: 'ROTATE',
+        _resource: 'api_key',
+        _resource_id: keyId,
+        _details: { rotated_at: new Date().toISOString() }
+      });
 
-      return {
-        ...data,
-        full_key: newApiKey,
-      };
+      await fetchAPIKeys();
+      return { ...data, full_key: newApiKey }; // Return new full key
     } catch (error) {
       console.error('Error rotating API key:', error);
       throw error;
@@ -241,8 +182,7 @@ export function useAPIKeys() {
     generateAPIKey,
     updateAPIKey,
     deleteAPIKey,
-    validateAPIKey,
     rotateAPIKey,
-    refetch: fetchAPIKeys,
+    fetchAPIKeys
   };
 }
