@@ -7,7 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { FileDown, Search, Filter, Eye, Shield, AlertTriangle } from 'lucide-react';
+import { AttackStatistics } from '@/components/security/AttackStatistics';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Clock, Download, Eye, Filter, Search, Shield, User, Database, AlertTriangle, FileDown } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import * as XLSX from 'xlsx';
 
@@ -233,8 +235,19 @@ export function AuditLogManager() {
 
   return (
     <div className="space-y-6">
-      {/* Attack Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <Tabs defaultValue="attacks" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="attacks">Attack Statistics</TabsTrigger>
+          <TabsTrigger value="audit">Audit Logs</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="attacks" className="space-y-4">
+          <AttackStatistics />
+        </TabsContent>
+        
+        <TabsContent value="audit" className="space-y-4">
+          {/* Attack Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -459,6 +472,8 @@ export function AuditLogManager() {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -166,15 +166,25 @@ export function UserManagementPanel() {
         throw new Error('Only admins can update user roles');
       }
 
-      const { error } = await supabase
+      // First try to update existing role
+      const { error: updateError } = await supabase
         .from('user_roles')
-        .upsert({
-          user_id: userId,
-          role: newRole as 'admin' | 'moderator' | 'user',
-          assigned_by: currentUser?.id
-        });
+        .update({ role: newRole as 'admin' | 'moderator' | 'user' })
+        .eq('user_id', userId);
 
-      if (error) throw error;
+      // If no rows updated, insert new role
+      if (updateError?.code === 'PGRST116') {
+        const { error: insertError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: userId,
+            role: newRole as 'admin' | 'moderator' | 'user',
+            assigned_by: currentUser?.id
+          });
+        if (insertError) throw insertError;
+      } else if (updateError) {
+        throw updateError;
+      }
 
       // Log audit event
       await supabase.rpc('log_audit_event', {

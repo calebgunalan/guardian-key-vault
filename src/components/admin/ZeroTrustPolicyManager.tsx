@@ -261,13 +261,13 @@ export function ZeroTrustPolicyManager() {
                   Add Policy
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Create Zero Trust Policy</DialogTitle>
-                  <DialogDescription>
-                    Define conditions and actions for zero trust security
-                  </DialogDescription>
-                </DialogHeader>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>{newPolicy.id ? 'Edit' : 'Create'} Zero Trust Policy</DialogTitle>
+                    <DialogDescription>
+                      Define conditions and actions for zero trust security
+                    </DialogDescription>
+                  </DialogHeader>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -371,6 +371,16 @@ export function ZeroTrustPolicyManager() {
                           checked={policy.isEnabled}
                           onCheckedChange={() => handleTogglePolicy(policy.id)}
                         />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setNewPolicy(policy);
+                            setIsAddDialogOpen(true);
+                          }}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
