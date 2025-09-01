@@ -2181,9 +2181,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      comprehensive_audit_logs: {
+        Row: {
+          action: string | null
+          created_at: string | null
+          details: Json | null
+          id: string | null
+          ip_address: unknown | null
+          log_type: string | null
+          resource: string | null
+          resource_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      calculate_ai_risk_score: {
+        Args: { _current_context?: Json; _user_id: string }
+        Returns: Json
+      }
       calculate_network_trust: {
         Args: { user_ip: unknown }
         Returns: number
@@ -2191,6 +2209,20 @@ export type Database = {
       check_user_group_permissions: {
         Args: { _action: string; _resource: string; _user_id: string }
         Returns: boolean
+      }
+      export_audit_logs: {
+        Args: { _end_date?: string; _format?: string; _start_date?: string }
+        Returns: {
+          action: string
+          created_at: string
+          details: Json
+          id: string
+          ip_address: unknown
+          resource: string
+          resource_id: string
+          user_agent: string
+          user_id: string
+        }[]
       }
       generate_emergency_token: {
         Args: {
