@@ -44,9 +44,8 @@ interface ZeroTrustPolicy {
 }
 
 export function ZeroTrustPolicyManager() {
-  const { policies, calculateTrustScore } = useZeroTrust();
+  const { policies, calculateTrustScore, createPolicy, updatePolicy, deletePolicy } = useZeroTrust();
   const { toast } = useToast();
-  const [localPolicies, setLocalPolicies] = useState<ZeroTrustPolicy[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newPolicy, setNewPolicy] = useState<Partial<ZeroTrustPolicy>>({
     name: '',
@@ -58,157 +57,75 @@ export function ZeroTrustPolicyManager() {
     isEnabled: true
   });
 
-  useEffect(() => {
-    // Initialize with some default policies to demonstrate functionality
-    setLocalPolicies([
-      {
-        id: '1',
-        name: 'Trusted Device Policy',
-        description: 'Require device to be registered and trusted',
+  const handleAddPolicy = async () => {
+    try {
+      await createPolicy({
+        name: newPolicy.name || '',
+        description: newPolicy.description || '',
+        policy_type: (newPolicy.type || 'device') as 'device' | 'network' | 'behavioral' | 'location' | 'time_based',
+        conditions: newPolicy.conditions || {},
+        actions: newPolicy.actions || { action: 'allow' },
+        severity: 'medium',
+        is_active: newPolicy.isEnabled ?? true
+      });
+
+      setIsAddDialogOpen(false);
+      setNewPolicy({
+        name: '',
+        description: '',
         type: 'device',
-        conditions: {
-          deviceRegistered: true,
-          deviceTrusted: true,
-          minimumTrustScore: 80
-        },
-        actions: {
-          allow: true,
-          requireMFA: false,
-          logAccess: true
-        },
+        conditions: {},
+        actions: {},
         priority: 1,
-        isEnabled: true,
-        createdAt: new Date()
-      },
-      {
-        id: '2',
-        name: 'Network Security Policy',
-        description: 'Block access from untrusted networks',
-        type: 'network',
-        conditions: {
-          allowedNetworks: ['192.168.1.0/24', '10.0.0.0/8'],
-          blockVPN: false,
-          requireSSL: true
-        },
-        actions: {
-          allow: true,
-          requireMFA: true,
-          logAccess: true
-        },
-        priority: 2,
-        isEnabled: true,
-        createdAt: new Date()
-      },
-      {
-        id: '3',
-        name: 'Behavioral Anomaly Policy',
-        description: 'Detect and respond to unusual user behavior',
-        type: 'behavioral',
-        conditions: {
-          maxAnomalyScore: 30,
-          checkLoginTimes: true,
-          checkAccessPatterns: true
-        },
-        actions: {
-          allow: false,
-          requireMFA: true,
-          notifyAdmin: true,
-          temporaryBlock: true
-        },
-        priority: 3,
-        isEnabled: true,
-        createdAt: new Date()
-      },
-      {
-        id: '4',
-        name: 'Geographic Policy',
-        description: 'Restrict access based on location',
-        type: 'location',
-        conditions: {
-          allowedCountries: ['US', 'CA', 'GB'],
-          blockedRegions: ['CN', 'RU'],
-          maxDistanceFromHome: 1000
-        },
-        actions: {
-          allow: true,
-          requireMFA: true,
-          logAccess: true,
-          requireApproval: false
-        },
-        priority: 4,
-        isEnabled: true,
-        createdAt: new Date()
-      },
-      {
-        id: '5',
-        name: 'Time-based Access Policy',
-        description: 'Restrict access during off-hours',
-        type: 'time',
-        conditions: {
-          allowedHours: { start: 8, end: 18 },
-          allowedDays: [1, 2, 3, 4, 5], // Monday-Friday
-          timezone: 'UTC'
-        },
-        actions: {
-          allow: false,
-          requireMFA: true,
-          requireApproval: true,
-          logAccess: true
-        },
-        priority: 5,
-        isEnabled: false,
-        createdAt: new Date()
+        isEnabled: true
+      });
+
+      toast({
+        title: "Policy Created",
+        description: `Zero Trust policy "${newPolicy.name}" has been created`
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to create policy",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleTogglePolicy = async (policyId: string) => {
+    try {
+      const policy = policies.find(p => p.id === policyId);
+      if (policy) {
+        await updatePolicy(policyId, { is_active: !policy.is_active });
+        toast({
+          title: "Policy Updated",
+          description: `Policy ${policy.name} ${policy.is_active ? 'disabled' : 'enabled'}`
+        });
       }
-    ]);
-  }, []);
-
-  const handleAddPolicy = () => {
-    const policy: ZeroTrustPolicy = {
-      id: Math.random().toString(36).substring(7),
-      name: newPolicy.name || '',
-      description: newPolicy.description || '',
-      type: newPolicy.type || 'device',
-      conditions: newPolicy.conditions || {},
-      actions: newPolicy.actions || {},
-      priority: newPolicy.priority || 1,
-      isEnabled: newPolicy.isEnabled ?? true,
-      createdAt: new Date()
-    };
-
-    setLocalPolicies(prev => [...prev, policy]);
-    setIsAddDialogOpen(false);
-    setNewPolicy({
-      name: '',
-      description: '',
-      type: 'device',
-      conditions: {},
-      actions: {},
-      priority: 1,
-      isEnabled: true
-    });
-
-    toast({
-      title: "Policy Created",
-      description: `Zero Trust policy "${policy.name}" has been created`
-    });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to update policy",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleTogglePolicy = (policyId: string) => {
-    setLocalPolicies(prev => 
-      prev.map(policy => 
-        policy.id === policyId 
-          ? { ...policy, isEnabled: !policy.isEnabled }
-          : policy
-      )
-    );
-  };
-
-  const handleDeletePolicy = (policyId: string) => {
-    setLocalPolicies(prev => prev.filter(policy => policy.id !== policyId));
-    toast({
-      title: "Policy Deleted",
-      description: "Zero Trust policy has been deleted"
-    });
+  const handleDeletePolicy = async (policyId: string) => {
+    try {
+      await deletePolicy(policyId);
+      toast({
+        title: "Policy Deleted",
+        description: "Zero Trust policy has been deleted"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to delete policy",
+        variant: "destructive"
+      });
+    }
   };
 
   const getPolicyIcon = (type: string) => {
@@ -350,14 +267,14 @@ export function ZeroTrustPolicyManager() {
 
         <TabsContent value="policies" className="space-y-4">
           <div className="grid gap-4">
-            {localPolicies.map((policy) => {
-              const Icon = getPolicyIcon(policy.type);
+            {policies.map((policy) => {
+              const Icon = getPolicyIcon(policy.policy_type);
               return (
-                <Card key={policy.id} className={`${!policy.isEnabled ? 'opacity-60' : ''}`}>
+                <Card key={policy.id} className={`${!policy.is_active ? 'opacity-60' : ''}`}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded ${getPolicyColor(policy.type)}`}>
+                        <div className={`p-2 rounded ${getPolicyColor(policy.policy_type)}`}>
                           <Icon className="h-4 w-4" />
                         </div>
                         <div>
@@ -366,16 +283,25 @@ export function ZeroTrustPolicyManager() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant="secondary">Priority {policy.priority}</Badge>
+                        <Badge variant={policy.severity === 'high' ? 'destructive' : 'secondary'}>
+                          {policy.severity.toUpperCase()}
+                        </Badge>
                         <Switch
-                          checked={policy.isEnabled}
+                          checked={policy.is_active}
                           onCheckedChange={() => handleTogglePolicy(policy.id)}
                         />
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setNewPolicy(policy);
+                            setNewPolicy({
+                              name: policy.name,
+                              description: policy.description,
+                              type: policy.policy_type as any,
+                              conditions: policy.conditions,
+                              actions: policy.actions,
+                              isEnabled: policy.is_active
+                            });
                             setIsAddDialogOpen(true);
                           }}
                         >
@@ -494,16 +420,16 @@ export function ZeroTrustPolicyManager() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span>Active Policies</span>
-                    <Badge variant="default">{localPolicies.filter(p => p.isEnabled).length}</Badge>
+                    <Badge variant="default">{policies.filter(p => p.is_active).length}</Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Disabled Policies</span>
-                    <Badge variant="secondary">{localPolicies.filter(p => !p.isEnabled).length}</Badge>
+                    <Badge variant="secondary">{policies.filter(p => !p.is_active).length}</Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>Average Priority</span>
+                    <span>High Priority Policies</span>
                     <Badge variant="outline">
-                      {(localPolicies.reduce((sum, p) => sum + p.priority, 0) / localPolicies.length).toFixed(1)}
+                      {policies.filter(p => p.severity === 'high' || p.severity === 'critical').length}
                     </Badge>
                   </div>
                 </div>
@@ -516,14 +442,14 @@ export function ZeroTrustPolicyManager() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {['device', 'network', 'behavioral', 'location', 'time'].map((type) => {
-                    const count = localPolicies.filter(p => p.type === type).length;
+                  {['device', 'network', 'behavioral', 'location', 'time_based'].map((type) => {
+                    const count = policies.filter(p => p.policy_type === type).length;
                     const Icon = getPolicyIcon(type);
                     return (
                       <div key={type} className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
                           <Icon className="h-4 w-4" />
-                          <span className="capitalize">{type}</span>
+                          <span className="capitalize">{type.replace('_', ' ')}</span>
                         </div>
                         <Badge variant="outline">{count}</Badge>
                       </div>

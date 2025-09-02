@@ -105,24 +105,28 @@ export function UserManagementPanel() {
         throw new Error('Only admins can create users');
       }
 
-      // Create profile entry first (since we can't use auth.admin in client-side)
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: crypto.randomUUID(), // Generate a UUID for demo purposes
-          email: newUser.email,
-          full_name: newUser.full_name
-        })
-        .select()
-        .single();
+      // First create auth user using supabase auth signup
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: newUser.email,
+        password: newUser.password,
+        options: {
+          data: {
+            full_name: newUser.full_name
+          }
+        }
+      });
 
-      if (profileError) throw profileError;
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('Failed to create user');
+
+      // Wait a bit for the trigger to create profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Assign role
       const { error: roleError } = await supabase
         .from('user_roles')
         .insert({
-          user_id: profileData.user_id,
+          user_id: authData.user.id,
           role: newUser.role as 'admin' | 'moderator' | 'user',
           assigned_by: currentUser?.id
         });
@@ -133,7 +137,7 @@ export function UserManagementPanel() {
       await supabase.rpc('log_audit_event', {
         _action: 'CREATE',
         _resource: 'user',
-        _resource_id: profileData.user_id,
+        _resource_id: authData.user.id,
         _details: { 
           created_user_email: newUser.email,
           assigned_role: newUser.role
@@ -142,7 +146,7 @@ export function UserManagementPanel() {
 
       toast({
         title: "User Created",
-        description: `User ${newUser.email} has been created successfully`
+        description: `User ${newUser.email} has been created successfully. They will receive an email confirmation.`
       });
 
       setIsAddDialogOpen(false);
