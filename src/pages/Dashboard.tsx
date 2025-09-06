@@ -211,9 +211,56 @@ export default function Dashboard() {
                     Audit Logs
                   </Button>
                 </PermissionGate>
+
+                <AdminGate>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => navigate("/admin/user-groups")}
+                    className="w-full justify-start"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    User Groups
+                  </Button>
+                </AdminGate>
+
+                <AdminGate>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => navigate("/admin/zero-trust")}
+                    className="w-full justify-start"
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    Zero Trust
+                  </Button>
+                </AdminGate>
               </CardContent>
             </Card>
           </PermissionGate>
+
+          {/* Resources Access */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Shield className="h-5 w-5" />
+                <span>Protected Resources</span>
+              </CardTitle>
+              <CardDescription>Access secure company resources</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Access documents, applications, and data through the IAM-protected resource portal.
+              </p>
+              <Button 
+                onClick={() => navigate("/resources")}
+                className="w-full"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Access Resources
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Quick Stats */}
           <Card>

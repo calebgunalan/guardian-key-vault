@@ -91,10 +91,16 @@ export default function Users() {
     }
 
     try {
+      // Use upsert to handle both update and insert cases
       const { error } = await supabase
         .from('user_roles')
-        .update({ role: newRole as 'user' | 'admin' | 'moderator' })
-        .eq('user_id', userId);
+        .upsert({ 
+          user_id: userId,
+          role: newRole as 'user' | 'admin' | 'moderator',
+          assigned_by: user?.id
+        }, { 
+          onConflict: 'user_id'
+        });
 
       if (error) throw error;
 

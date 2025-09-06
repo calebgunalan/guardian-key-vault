@@ -19,6 +19,7 @@ import AuditLogsNew from './pages/admin/AuditLogsNew';
 import QuantumControl from './pages/admin/QuantumControl';
 import UserManagement from './pages/admin/UserManagement';
 import ZeroTrust from './pages/admin/ZeroTrust';
+import UserGroups from './pages/admin/UserGroups';
 import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/admin/audit-logs-new" element={<AuditLogsNew />} />
               <Route path="/admin/quantum-control" element={<QuantumControl />} />
               <Route path="/admin/user-management" element={<UserManagement />} />
+              <Route path="/admin/user-groups" element={<UserGroups />} />
               <Route path="/admin/zero-trust" element={<ZeroTrust />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

@@ -122,16 +122,25 @@ export function UserManagementPanel() {
       // Wait a bit for the trigger to create profile
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Assign role
-      const { error: roleError } = await supabase
+      // Check if role assignment is needed (trigger may have created it)
+      const { data: existingRole } = await supabase
         .from('user_roles')
-        .insert({
-          user_id: authData.user.id,
-          role: newUser.role as 'admin' | 'moderator' | 'user',
-          assigned_by: currentUser?.id
-        });
+        .select('id')
+        .eq('user_id', authData.user.id)
+        .single();
 
-      if (roleError) throw roleError;
+      if (!existingRole && newUser.role !== 'user') {
+        // Only assign role if it doesn't exist and it's not the default 'user' role
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .upsert({
+            user_id: authData.user.id,
+            role: newUser.role as 'admin' | 'moderator' | 'user',
+            assigned_by: currentUser?.id
+          }, { onConflict: 'user_id' });
+
+        if (roleError) throw roleError;
+      }
 
       // Log audit event
       await supabase.rpc('log_audit_event', {
@@ -170,14 +179,23 @@ export function UserManagementPanel() {
         throw new Error('Only admins can update user roles');
       }
 
-      // First try to update existing role
-      const { error: updateError } = await supabase
+      // Check if role already exists
+      const { data: existingRole } = await supabase
         .from('user_roles')
-        .update({ role: newRole as 'admin' | 'moderator' | 'user' })
-        .eq('user_id', userId);
+        .select('id')
+        .eq('user_id', userId)
+        .single();
 
-      // If no rows updated, insert new role
-      if (updateError?.code === 'PGRST116') {
+      if (existingRole) {
+        // Update existing role
+        const { error: updateError } = await supabase
+          .from('user_roles')
+          .update({ role: newRole as 'admin' | 'moderator' | 'user' })
+          .eq('user_id', userId);
+        
+        if (updateError) throw updateError;
+      } else {
+        // Insert new role
         const { error: insertError } = await supabase
           .from('user_roles')
           .insert({
@@ -186,8 +204,6 @@ export function UserManagementPanel() {
             assigned_by: currentUser?.id
           });
         if (insertError) throw insertError;
-      } else if (updateError) {
-        throw updateError;
       }
 
       // Log audit event
@@ -359,6 +375,86 @@ export function UserManagementPanel() {
                   </Button>
                   <Button onClick={handleAddUser}>
                     Create User
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Edit User Dialog */}
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit User</DialogTitle>
+                  <DialogDescription>
+                    Update user information and role
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-full-name">Full Name</Label>
+                    <Input
+                      id="edit-full-name"
+                      value={editingUser?.full_name || ''}
+                      onChange={(e) => setEditingUser(prev => prev ? { ...prev, full_name: e.target.value } : null)}
+                      placeholder="John Doe"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-role">Role</Label>
+                    <Select 
+                      value={editingUser?.role || 'user'} 
+                      onValueChange={(value) => setEditingUser(prev => prev ? { ...prev, role: value } : null)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="user">User</SelectItem>
+                        <SelectItem value="moderator">Moderator</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={async () => {
+                    if (!editingUser) return;
+                    
+                    try {
+                      // Update profile
+                      if (editingUser.full_name) {
+                        await supabase
+                          .from('profiles')
+                          .update({ full_name: editingUser.full_name })
+                          .eq('user_id', editingUser.id);
+                      }
+
+                      // Update role if changed
+                      const currentRole = users.find(u => u.id === editingUser.id)?.role;
+                      if (editingUser.role && editingUser.role !== currentRole) {
+                        await handleUpdateUserRole(editingUser.id, editingUser.role);
+                      }
+
+                      toast({
+                        title: "User Updated",
+                        description: "User information updated successfully"
+                      });
+
+                      setIsEditDialogOpen(false);
+                      setEditingUser(null);
+                      fetchUsers();
+                    } catch (error: any) {
+                      toast({
+                        title: "Error",
+                        description: "Failed to update user",
+                        variant: "destructive"
+                      });
+                    }
+                  }}>
+                    Update User
                   </Button>
                 </DialogFooter>
               </DialogContent>
