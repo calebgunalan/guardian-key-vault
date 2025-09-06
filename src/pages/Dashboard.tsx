@@ -144,7 +144,7 @@ export default function Dashboard() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => navigate("/admin/users")}
+                      onClick={() => navigate("/admin/user-management")}
                       className="w-full justify-start"
                     >
                       <Users className="h-4 w-4 mr-2" />
@@ -169,7 +169,7 @@ export default function Dashboard() {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => navigate("/admin/users")}
+                  onClick={() => navigate("/admin/user-management")}
                   className="w-full justify-start"
                 >
                   <Users className="h-4 w-4 mr-2" />
@@ -239,28 +239,31 @@ export default function Dashboard() {
             </Card>
           </PermissionGate>
 
-          {/* Resources Access */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Shield className="h-5 w-5" />
-                <span>Protected Resources</span>
-              </CardTitle>
-              <CardDescription>Access secure company resources</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Access documents, applications, and data through the IAM-protected resource portal.
-              </p>
-              <Button 
-                onClick={() => navigate("/resources")}
-                className="w-full"
-              >
-                <Shield className="h-4 w-4 mr-2" />
-                Access Resources
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Session Management */}
+          <AdminGate>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Activity className="h-5 w-5" />
+                  <span>Session Management</span>
+                </CardTitle>
+                <CardDescription>Monitor and manage user sessions</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  View active sessions and user activities across the system.
+                </p>
+                <Button 
+                  onClick={() => navigate("/admin/session-management")}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Sessions
+                </Button>
+              </CardContent>
+            </Card>
+          </AdminGate>
 
           {/* Quick Stats */}
           <Card>

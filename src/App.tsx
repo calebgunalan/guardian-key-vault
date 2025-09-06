@@ -20,6 +20,8 @@ import QuantumControl from './pages/admin/QuantumControl';
 import UserManagement from './pages/admin/UserManagement';
 import ZeroTrust from './pages/admin/ZeroTrust';
 import UserGroups from './pages/admin/UserGroups';
+import SessionManagement from './pages/admin/SessionManagement';
+import ResourceAuth from './pages/ResourceAuth';
 import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -36,9 +38,9 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/quantum-security" element={<QuantumSecurity />} />
               <Route path="/resources" element={<Resources />} />
-              <Route path="/profile" element={<Profile />} />
               <Route path="/admin/users" element={<Users />} />
               <Route path="/admin/roles" element={<Roles />} />
               <Route path="/admin/permissions" element={<Permissions />} />
@@ -47,7 +49,9 @@ const App = () => (
               <Route path="/admin/quantum-control" element={<QuantumControl />} />
               <Route path="/admin/user-management" element={<UserManagement />} />
               <Route path="/admin/user-groups" element={<UserGroups />} />
+              <Route path="/admin/session-management" element={<SessionManagement />} />
               <Route path="/admin/zero-trust" element={<ZeroTrust />} />
+              <Route path="/resources/auth" element={<ResourceAuth />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
